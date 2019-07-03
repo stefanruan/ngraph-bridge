@@ -87,16 +87,28 @@ add_custom_command(
 if (APPLE)
     set(NGRAPH_TF_CXX11_ABI 0)
 endif()
-
-target_link_libraries(
-    gtest_ngtf
-    ngraph_bridge
-    ngraph_lib
-    libgtest
-    pthread
-    ${TensorFlow_FRAMEWORK_LIBRARY}
-    tensorflow_cc_lib
-)
+if (NGRAPH_BRIDGE_STATIC_LIB_ENABLE)
+    target_link_libraries(
+	gtest_ngtf -Wl,--whole-archive
+	graph_bridge_static
+	ngraph_lib_static -Wl,--no-whole-archive
+        dl
+	libgtest
+	pthread
+	${TensorFlow_FRAMEWORK_LIBRARY}
+	tensorflow_cc_lib
+    )
+else()
+    target_link_libraries(
+        gtest_ngtf
+        ngraph_bridge
+        ngraph_lib
+        libgtest
+        pthread
+        ${TensorFlow_FRAMEWORK_LIBRARY}
+        tensorflow_cc_lib
+    )
+endif()
 
 add_subdirectory(python)
 
