@@ -63,7 +63,9 @@ class MyTest:
         assert np.isclose(
             self.with_ngraph(run_test), self.without_ngraph(run_test)).all()
     
-    def with_ngraph(self, l, config=tf.ConfigProto()):
+    def with_ngraph(self, l, config=None):
+        if config is None:
+            config = tf.ConfigProto()
         # TODO: Stop grappler on failure (Add fail_on_optimizer_errors=True)
         config = ngraph_bridge.update_config(config)
 
@@ -83,7 +85,9 @@ class MyTest:
 
         return retval
 
-    def without_ngraph(self, l, config=tf.ConfigProto()):
+    def without_ngraph(self, l, config=None):
+        if config is None:
+            config = tf.ConfigProto()
         ngraph_tf_disable_deassign_clusters = os.environ.pop(
             'NGRAPH_TF_DISABLE_DEASSIGN_CLUSTERS', None)
 
