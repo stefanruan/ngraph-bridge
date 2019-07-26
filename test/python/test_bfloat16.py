@@ -24,10 +24,12 @@ def model1(dtype):
     y = tf.cast(y, dtype=tf.bfloat16)
     return tf.matmul(x, y), [x, y]
 
+
 def model2(dtype):
     x = tf.placeholder(dtype, [3, 3], name='x')
     y = tf.placeholder(dtype, [3, 3], name='y')
     return tf.matmul(x, y), [x, y]
+
 
 def get_config(nativerun):
     config = tf.ConfigProto(
@@ -40,26 +42,26 @@ def get_config(nativerun):
         return ngraph_bridge.update_config(config)
 
 
-models = [model1, model2]
-
 outputs = []
-k_np = np.random.rand(3,3)
+k_np = np.random.rand(3, 3)
 for dtype, nativerun in [(tf.float32, True), (tf.float32, False)]:
-    with tf.Session(config=get_config(nativerun)) as sess:
-        if nativerun:
+    if nativerun:
+        with tf.Session(config=get_config(nativerun)) as sess1:
             ngraph_bridge.disable()
             out, list_of_ins = model1(dtype)
             out = tf.cast(out, dtype=tf.float32)
-        else:
+            feed_dict = {k: k_np for k in list_of_ins}
+            outval = sess1.run(out, feed_dict=feed_dict)
+            outputs.append(outval[0][0])
+    else:
+        with tf.Session(config=get_config(nativerun)) as sess2:
             ngraph_bridge.enable()
             os.environ['NGRAPH_TF_DISABLE_DEASSIGN_CLUSTERS'] = '1'
             os.environ['NGRAPH_TF_BACKEND'] = 'NNP'
             out, list_of_ins = model2(dtype)
-        feed_dict = {
-            k: k_np for k in list_of_ins
-        }
-        outval = sess.run(out, feed_dict=feed_dict)
-        outputs.append(outval[0][0])
-        print(out.dtype, nativerun, outval[0][0])
+            feed_dict = {k: k_np for k in list_of_ins}
+            outval = sess2.run(out, feed_dict=feed_dict)
+            outputs.append(outval[0][0])
+    print(out.dtype, nativerun, outval[0][0])
 
 assert np.allclose(outputs[0], outputs[1])
