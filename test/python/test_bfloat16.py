@@ -12,7 +12,7 @@ import os
 
 # Actual : TF with nGraph, NNP, B0 Funcsim
 # - Same input tensors X,Y : Dt.Float
-# -  MatMul takes in X,Y ->outputs B (Dt.Float)
+# - MatMul takes in X,Y ->outputs B (Dt.Float)
 
 # Compare A and B with tolerance
 
