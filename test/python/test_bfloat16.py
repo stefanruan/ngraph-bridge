@@ -22,17 +22,12 @@ def model1(dtype):
     y = tf.placeholder(dtype, [3, 3], name='y')
     x = tf.cast(x, dtype=tf.bfloat16)
     y = tf.cast(y, dtype=tf.bfloat16)
-    # a = tf.constant(np.full((3, 3), 1.5, dtype=np.float32), name='alpha', dtype=dtype)
     return tf.matmul(x, y), [x, y]
-
 
 def model2(dtype):
     x = tf.placeholder(dtype, [3, 3], name='x')
     y = tf.placeholder(dtype, [3, 3], name='y')
-    # a = tf.constant(
-    #     np.full((3, 3), 1.5, dtype=np.float32), name='alpha', dtype=dtype)
     return tf.matmul(x, y), [x, y]
-
 
 def get_config(nativerun):
     config = tf.ConfigProto(
@@ -48,6 +43,7 @@ def get_config(nativerun):
 models = [model1, model2]
 
 outputs = []
+k_np = np.random.rand(3,3)
 for dtype, nativerun in [(tf.float32, True), (tf.float32, False)]:
     with tf.Session(config=get_config(nativerun)) as sess:
         if nativerun:
@@ -60,10 +56,10 @@ for dtype, nativerun in [(tf.float32, True), (tf.float32, False)]:
             os.environ['NGRAPH_TF_BACKEND'] = 'NNP'
             out, list_of_ins = model2(dtype)
         feed_dict = {
-            k: np.ones([i.value for i in k.shape.dims]) for k in list_of_ins
+            k: k_np for k in list_of_ins
         }
         outval = sess.run(out, feed_dict=feed_dict)
-        outputs.append(outval)
+        outputs.append(outval[0][0])
         print(out.dtype, nativerun, outval[0][0])
 
-np.allclose(outputs[0], outputs[1])
+assert np.allclose(outputs[0], outputs[1])
