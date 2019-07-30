@@ -72,12 +72,11 @@ execute_process(
 )
 
 if(NOT APPLE)
-    # FIXME: Doesn't work for Ubuntu
     execute_process(COMMAND cat /etc/os-release
         OUTPUT_VARIABLE LSB_RELEASE_ID_SHORT
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
+    string(REPLACE "\"" "" LSB_RELEASE_ID_SHORT ${LSB_RELEASE_ID_SHORT})
     string(REGEX MATCH "ID=\"([a-z])+\"" OS_VERSION "${LSB_RELEASE_ID_SHORT}")
     string(REGEX MATCH "\"([a-z])+\"" OS_VERSION "${OS_VERSION}")
     message("OS version is ${OS_VERSION}")
@@ -235,7 +234,7 @@ if (NOT USE_PRE_BUILT_NGRAPH)
         ext_ngraph
         GIT_REPOSITORY https://github.com/NervanaSystems/ngraph
         GIT_TAG v0.24.0-rc.2
-        CMAKE_ARGS 
+        CMAKE_ARGS
             -DNGRAPH_DISTRIBUTED_ENABLE=${NGRAPH_DISTRIBUTED_ENABLE}
             -DNGRAPH_INSTALL_PREFIX=${NGRAPH_ARTIFACTS_DIR}
             -DNGRAPH_USE_CXX_ABI=${TensorFlow_CXX_ABI}
@@ -262,7 +261,7 @@ endif()
 set(NGRAPH_INSTALL_DIR ${NGRAPH_ARTIFACTS_DIR})
 
 
-if(OS_VERSION STREQUAL "\"centos\"")
+if(OS_VERSION STREQUAL "centos" OR OS_VERSION STREQUAL "fedora"))
 	set(NGRAPH_IMPORTED_LOCATION ${NGRAPH_INSTALL_DIR}/lib64/${LIBNGRAPH_SO})
 else()
 	set(NGRAPH_IMPORTED_LOCATION ${NGRAPH_INSTALL_DIR}/lib/${LIBNGRAPH_SO})
@@ -300,7 +299,7 @@ if (DEFINED TF_SRC_DIR)
     add_subdirectory(examples/cpp)
 else()
     message(
-        STATUS 
+        STATUS
         "TensorFlow source directory not provided. "
         "C++ Examples won't be built"
     )
@@ -312,7 +311,7 @@ if (UNIT_TEST_ENABLE)
     endif()
     if (NOT EXISTS ${TensorFlow_SRC_DIR})
         message(
-            STATUS 
+            STATUS
             "TensorFlow source directory doesn't exist"
         )
     endif()

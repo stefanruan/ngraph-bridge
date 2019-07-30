@@ -39,7 +39,7 @@ if (PYTHON)
     # If we are building on CentOS then it's lib64 - else lib
     set(LIB_SUFFIX lib)
     if(NOT APPLE)
-        if(OS_VERSION STREQUAL "centos")
+        if(OS_VERSION STREQUAL "centos" OR OS_VERSION STREQUAL "fedora")
             set(LIB_SUFFIX lib64)
         endif()
     endif()
@@ -48,9 +48,9 @@ if (PYTHON)
 
     # Copy the ngraph_bridge include from install
     message(STATUS "NGTF_INSTALL_DIR: ${NGTF_INSTALL_DIR}")
-    
+
     file(
-        COPY "${NGRAPH_INSTALL_DIR}/include" 
+        COPY "${NGRAPH_INSTALL_DIR}/include"
         DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/python/ngraph_bridge"
     )
 
