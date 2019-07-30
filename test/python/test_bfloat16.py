@@ -63,7 +63,7 @@ with tf.Session(config=config) as sess_ng:
     print(ng_outval.dtype, ng_outval[0][0])
 
 try:
-    assert np.allclose(tf_outval[0][0], ng_outval[0][0])
+    assert np.allclose(tf_outval, ng_outval)
     print(" \033[92m PASS \033[0m ")
 except:
     print(" \033[91m FAIL \033[0m ")
