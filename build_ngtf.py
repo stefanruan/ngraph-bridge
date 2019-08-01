@@ -325,8 +325,8 @@ def main():
                              target_arch, verbosity)
 
             # Now build the libtensorflow_cc.so - the C++ library
-            # We don't clean the cache as the user is building from source - and  
-            # if wants to repeat the build - havng the cache would benefit 
+            # We don't clean the cache as the user is building from source - and
+            # if wants to repeat the build - havng the cache would benefit
             build_tensorflow_cc(tf_src_dir, artifacts_location, target_arch,
                                 verbosity, False)
 

@@ -68,7 +68,8 @@ def main():
                      False)
 
     # Build TensorFlow C++ Library
-    build_tensorflow_cc("tensorflow", 'artifacts', arguments.target_arch, False, False)
+    build_tensorflow_cc("tensorflow", 'artifacts', arguments.target_arch, False,
+                        False)
 
     pwd = os.getcwd()
     artifacts_dir = os.path.join(pwd, 'artifacts/tensorflow')

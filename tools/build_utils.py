@@ -243,7 +243,8 @@ def build_tensorflow(venv_dir, src_dir, artifacts_dir, target_arch, verbosity):
     os.chdir(pwd)
 
 
-def build_tensorflow_cc(src_dir, artifacts_dir, target_arch, verbosity, clean_cache):
+def build_tensorflow_cc(src_dir, artifacts_dir, target_arch, verbosity,
+                        clean_cache):
 
     pwd = os.getcwd()
 
@@ -293,9 +294,7 @@ def build_tensorflow_cc(src_dir, artifacts_dir, target_arch, verbosity, clean_ca
     copy_tf_cc_lib_to_artifacts(artifacts_dir, None)
 
     if clean_cache:
-        cmd = [
-            "bazel", "clean", "--expunge"
-        ]
+        cmd = ["bazel", "clean", "--expunge"]
         command_executor(cmd)
 
     # popd
