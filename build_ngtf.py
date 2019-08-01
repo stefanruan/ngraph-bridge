@@ -308,8 +308,10 @@ def main():
             shutil.copyfile(tf_lib_file, dst)
 
             # Now build the libtensorflow_cc.so - the C++ library
+            # We are cleaning the cache as this use case is not very frequently used
+            # but this fills up the disk for CI
             build_tensorflow_cc(tf_src_dir, artifacts_location, target_arch,
-                                verbosity)
+                                verbosity, True)
 
         else:
             print("Building TensorFlow from source")
@@ -323,8 +325,10 @@ def main():
                              target_arch, verbosity)
 
             # Now build the libtensorflow_cc.so - the C++ library
+            # We don't clean the cache as the user is building from source - and  
+            # if wants to repeat the build - havng the cache would benefit 
             build_tensorflow_cc(tf_src_dir, artifacts_location, target_arch,
-                                verbosity)
+                                verbosity, False)
 
             # Install tensorflow to our own virtual env
             # Note that if gcc 4.8 is used for building TensorFlow this flag
