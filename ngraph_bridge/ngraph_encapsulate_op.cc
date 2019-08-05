@@ -607,7 +607,7 @@ class NGraphEncapsulateOp : public OpKernel {
       std::shared_ptr<ng::runtime::Tensor> current_ng_tensor =
           GetCurrentNgTensor(current_src_ptr, last_src_ptr, last_ng_tensor,
                              false, ng_exec, op_backend, ng_element_type,
-                             ng_shape);
+                             ng_shape, i);
       bool is_cpu = m_op_backend_name == "CPU";
 
       if (!is_cpu && current_ng_tensor->get_stale()) {
@@ -723,7 +723,7 @@ class NGraphEncapsulateOp : public OpKernel {
 #endif
       current_ng_tensor = GetCurrentNgTensor(
           current_dst_ptr, last_dst_ptr, last_ng_tensor, true, ng_exec,
-          op_backend, ng_element_type, ng_shape);
+          op_backend, ng_element_type, ng_shape, i);
 
       current_ng_tensor->set_stale(true);
       output_caches[i] = std::make_pair(current_dst_ptr, current_ng_tensor);
@@ -1010,7 +1010,7 @@ class NGraphEncapsulateOp : public OpKernel {
       const bool& output_tensor,
       const std::shared_ptr<ngraph::runtime::Executable>& ng_exec,
       ng::runtime::Backend* op_backend,
-      const ng::element::Type& ng_element_type, const ng::Shape& ng_shape) {
+      const ng::element::Type& ng_element_type, const ng::Shape& ng_shape, int idx) {
     // NOTE: we assume that TF's pointers WILL change if it actually changes
     // values. ie, it will not reuse the same space if its rewritten it
     bool tf_tensor_has_changed = current_tf_ptr != last_tf_ptr;
@@ -1050,7 +1050,7 @@ class NGraphEncapsulateOp : public OpKernel {
       } else {
         if (!m_executor_tensor_creation_supported){
           // m_executor_tensor_creation_supported is settable to true only once
-          // for false case it keeps checking again and again.
+          // TODO: for false case it keeps checking again and again. maybe fix that
           try {
             ng_exec->create_input_tensor(0);
             m_executor_tensor_creation_supported = true;
@@ -1061,7 +1061,11 @@ class NGraphEncapsulateOp : public OpKernel {
         if (m_executor_tensor_creation_supported){
           // TODO: ping/pong
           // TODO replace 0 by something else
-          current_ng_tensor = ng_exec->create_input_tensor(0);
+          if (output_tensor) {
+            current_ng_tensor = ng_exec->create_output_tensor(idx);
+          } else {
+            current_ng_tensor = ng_exec->create_input_tensor(idx);
+          }
         } else {
           current_ng_tensor =
               op_backend->create_tensor(ng_element_type, ng_shape);
