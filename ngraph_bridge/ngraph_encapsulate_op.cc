@@ -1059,8 +1059,9 @@ class NGraphEncapsulateOp : public OpKernel {
           }
         }
         if (m_executor_tensor_creation_supported){
+          // TODO: Change cout to VLOG
+          cout << "Using Executable to create tensors instead of backend\n";
           // TODO: ping/pong
-          // TODO replace 0 by something else
           if (output_tensor) {
             current_ng_tensor = ng_exec->create_output_tensor(idx);
           } else {
