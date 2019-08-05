@@ -194,6 +194,7 @@ class NGraphEncapsulateOp : public OpKernel {
     BackendManager::CreateBackend(m_op_backend_name);
     // SetConfig will be called for each EncapsulateOp
     BackendManager::SetConfig(m_op_backend_name, additional_attribute_map);
+
     event.Stop();
     ngraph::Event::write_trace(event);
   }
@@ -1048,23 +1049,14 @@ class NGraphEncapsulateOp : public OpKernel {
         current_ng_tensor = op_backend->create_tensor(ng_element_type, ng_shape,
                                                       current_tf_ptr);
       } else {
-        if (!m_executor_tensor_creation_supported){
-          // m_executor_tensor_creation_supported is settable to true only once
-          // TODO: for false case it keeps checking again and again.
-          try {
-            ng_exec->create_tensor(ng_element_type, ng_shape);
-            m_executor_tensor_creation_supported = true;
-          } catch (...){
-            // pass
-          }
-        }
-        if (m_executor_tensor_creation_supported){
+// TODO: make this "1" a build flag
+#if 1
           // TODO: ping/pong
           current_ng_tensor = ng_exec->create_tensor(ng_element_type, ng_shape);
-        } else {
+#else
           current_ng_tensor =
               op_backend->create_tensor(ng_element_type, ng_shape);
-        }
+#endif
       }
     } else {
       current_ng_tensor = last_ng_tensor;
@@ -1078,7 +1070,6 @@ class NGraphEncapsulateOp : public OpKernel {
   int my_instance_id{0};
   int m_number_outputs = -1;
   int m_number_inputs = -1;
-  bool m_executor_tensor_creation_supported = false;
 };
 
 int NGraphEncapsulateOp::s_instance_count = 0;
