@@ -1073,6 +1073,7 @@ class NGraphEncapsulateOp : public OpKernel {
         }
       }
     } else {
+      cout << "Reusing last ngtensor\n";
       current_ng_tensor = last_ng_tensor;
     }
     current_ng_tensor->set_stale(is_stale);
