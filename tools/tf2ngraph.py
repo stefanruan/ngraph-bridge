@@ -158,6 +158,7 @@ def run_ngraph_grappler_optimizer(input_gdef, output_nodes, ng_backend,
         shape_hints, do_aot)
     output_gdef = tf_optimizer.OptimizeGraph(
         session_config, grappler_meta_graph_def, graph_id=b"tf_graph")
+    print("---------Non empty library: ", len(output_gdef.library.function), '-------')
     return output_gdef
 
 

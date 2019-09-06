@@ -258,9 +258,12 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
 
   // 4. Encapsulate clusters then, if requested, dump the graphs.
   FunctionDefLibrary* fdeflib_new = new FunctionDefLibrary();
+  cout << "=============\nEmpty\n" << fdeflib_new->DebugString().length() << "\n===============\n";
   TF_RETURN_IF_ERROR(
       // TODO: right now _ngraph_aot_requested is passed along in config_map.
       EncapsulateClusters(&graph, idx, fdeflib_new, config_map, aot_info));
+  cout << "=============\nRight after EncapsulateClusters. non empty\n" << fdeflib_new->DebugString().length() << "\n===============\n";
+
   if (DumpEncapsulatedGraphs()) {
     DumpGraphs(graph, idx, "encapsulated", "Graph with Clusters Encapsulated");
   }
@@ -278,6 +281,7 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
   // https://developers.google.com/protocol-buffers/docs/reference/cpp-generated#proto3_string
   // Hence no need to free fdeflib_new
   output->set_allocated_library(fdeflib_new);
+  cout << "=============\nOutput graph's lib. non empty\n" << output->library().DebugString().length() << "\n===============\n";
   return Status::OK();
 }
 
