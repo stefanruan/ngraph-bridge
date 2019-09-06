@@ -332,6 +332,7 @@ def convert(inp_format, inp_loc, out_format, out_loc, output_nodes, ng_backend,
     output_gdef = run_ngraph_grappler_optimizer(
         input_gdef, output_nodes, ng_backend, device_id,
         backend_optional_params, shape_hints, do_aot)
+    print("---------Non empty library after run_ngraph_grappler_optimizer: ", len(output_gdef.library.function), '-------')
     save_model(output_gdef, out_format, out_loc)
 
 
