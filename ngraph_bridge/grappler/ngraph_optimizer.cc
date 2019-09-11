@@ -157,30 +157,34 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
     }
   }
 
-  // Fetch Nodes
-  std::set<string> fetch_nodes;
+  map<string, set<int>> fetch_node_info;
+  set<string> fetch_node_names;
+
   for (const string& f : item.fetch) {
     int pos = f.find(":");
-    fetch_nodes.insert(f.substr(0, pos));
+    string node_name = f.substr(0, pos);
+    int output_slot = stoi(f.substr(pos+1, (f.size()-pos-1)));
+    if (disabled_nodes.find(node_name) == disabled_nodes.end()){
+      auto itr = fetch_node_info.find(node_name);
+      if (itr == fetch_node_info.end()){
+        fetch_node_info.insert({node_name, {output_slot}});
+      } else {
+        itr->second.insert(output_slot);
+      }
+      fetch_node_names.insert(node_name);
+    }
   }
 
-  // nodes_to_add_identity_to = fetch_nodes - disabled_nodes
-  std::set<string> nodes_to_add_identity_to;
-  std::set_difference(fetch_nodes.begin(), fetch_nodes.end(),
-                      disabled_nodes.begin(), disabled_nodes.end(),
-                      std::inserter(nodes_to_add_identity_to,
-                                    nodes_to_add_identity_to.begin()));
 
   // Rewrite graph to add IdentityN node so the fetch node can be encapsulated
   // as well
   // If the fetch node in question has 0 outputs or any of the outputs
   // has ref type as a data type then don't add IdentityN node, but the fetch
   // node will be skipped from capturing and marking for clustering.
-  TF_RETURN_IF_ERROR(AddIdentityN(&graph, nodes_to_add_identity_to));
+  TF_RETURN_IF_ERROR(AddIdentityN(&graph, fetch_node_info));
 
-  nodes_to_preserve.insert(nodes_to_add_identity_to.begin(),
-                           nodes_to_add_identity_to.end());
-  std::set<string>& skip_these_nodes = nodes_to_preserve;
+  nodes_to_preserve.insert(fetch_node_names.begin(),
+                           fetch_node_names.end());
 
   //
   // Variable capture: Part that replaces all instances of VariableV2 with the
@@ -190,7 +194,7 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
   //
 
   // Do variable capture then, if requested, dump the graphs.
-  TF_RETURN_IF_ERROR(CaptureVariables(&graph, skip_these_nodes));
+  TF_RETURN_IF_ERROR(CaptureVariables(&graph, nodes_to_preserve));
   if (DumpCapturedGraphs()) {
     DumpGraphs(graph, idx, "captured", "Graph With Variables Captured");
   }
@@ -238,7 +242,7 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
 
   // 1. Mark for clustering then, if requested, dump the graphs.
   TF_RETURN_IF_ERROR(
-      MarkForClustering(&graph, skip_these_nodes, backend_creation_string));
+      MarkForClustering(&graph, nodes_to_preserve, backend_creation_string));
   if (DumpMarkedGraphs()) {
     DumpGraphs(graph, idx, "marked", "Graph Marked for Clustering");
   }

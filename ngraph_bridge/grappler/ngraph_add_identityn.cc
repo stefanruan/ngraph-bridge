@@ -21,11 +21,11 @@ namespace tensorflow {
 
 namespace ngraph_bridge {
 
-Status AddIdentityN(Graph* input_graph, std::set<string> skip_these_nodes) {
+Status AddIdentityN(Graph* input_graph, std::map<string, std::set<int>> fetch_node_info) {
   for (auto node : input_graph->op_nodes()) {
     bool fetch_node = false;
     bool ref_type = false;
-    fetch_node = skip_these_nodes.find(node->name()) != skip_these_nodes.end();
+    fetch_node = fetch_node_info.find(node->name()) != fetch_node_info.end();
     if (fetch_node) {
       NGRAPH_VLOG(5) << "NGTF_OPTIMIZER: Fetch Node " << node->name();
       // Check the number of outputs of the 'fetch_node'
@@ -34,10 +34,14 @@ Status AddIdentityN(Graph* input_graph, std::set<string> skip_these_nodes) {
       // Also, make sure that none of the output types is
       // a ref type because IdentityN does not support
       // an input of type ref type
-      if (node->num_outputs()) {
+      if (node->num_outputs() > 0) {
+        set<int> output_slots = fetch_node_info.at(node->name());
+        if (output_slots.size() == 0) {
+          return errors::Internal(node->name(), " is an output node with ", node->num_outputs(), " outputs, but none of them were requested in fetch_node_info");
+        }
         std::vector<NodeBuilder::NodeOut> inputs;
         std::vector<DataType> input_types;
-        for (int i = 0; i < node->num_outputs(); i++) {
+        for (const int& i : output_slots) {
           if (IsRefType(node->output_type(i))) {
             NGRAPH_VLOG(5) << "NGTF_OPTIMIZER: "
                            << "Datatype for the node output"

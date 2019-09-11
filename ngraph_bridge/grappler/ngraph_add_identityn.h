@@ -18,6 +18,8 @@
 #ifndef NGRAPH_TF_ADD_IDENTITYN_H_
 #define NGRAPH_TF_ADD_IDENTITYN_H_
 
+#include<map>
+
 #include "tensorflow/core/graph/graph.h"
 #include "tensorflow/core/graph/node_builder.h"
 
@@ -27,7 +29,7 @@ namespace tensorflow {
 
 namespace ngraph_bridge {
 
-Status AddIdentityN(Graph* graph, std::set<string> skip_these_nodes);
+Status AddIdentityN(Graph* graph, std::map<string, std::set<int>> fetch_node_info);
 
 }  // namespace ngraph_bridge
 
