@@ -4804,6 +4804,7 @@ const static std::map<
       {"ArgMax", TranslateArgMinMaxOp<ng::op::ArgMax>},
       {"ArgMin", TranslateArgMinMaxOp<ng::op::ArgMin>},
       {"AvgPool", TranslateAvgPoolOp}, {"AvgPoolGrad", TranslateAvgPoolGradOp},
+      {"BatchMatMulV2", TranslateBatchMatMulOp},
       {"BatchMatMul", TranslateBatchMatMulOp}, {"BiasAdd", TranslateBiasAddOp},
       {"BiasAddGrad", TranslateBiasAddGradOp}, {"Cast", TranslateCastOp},
       {"CombinedNonMaxSuppression", TranslateCombinedNonMaxSuppressionOp},
