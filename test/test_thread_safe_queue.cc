@@ -31,6 +31,38 @@ namespace tensorflow {
 namespace ngraph_bridge {
 
 namespace testing {
+
+TEST(ThreadSafeQueue, test1) {
+ThreadSafeQueue<int> queue;
+auto worker = [&queue]() {
+  queue.GetNextAvailable();
+};
+
+std::thread thread0(worker);
+std::thread thread1(worker);
+std::thread thread2(worker);
+
+cout << "STARTED SLEEP\n";
+absl::SleepFor(absl::Milliseconds(100));
+cout << "FINISHED SLEEP\n";
+
+int a = 0;
+int b = 1;
+int c = 2;
+queue.Add(&a);
+
+absl::SleepFor(absl::Milliseconds(100));
+queue.Add(&b);
+queue.Add(&c);
+
+
+thread0.join();
+thread1.join();
+thread2.join();
+
+
+}
+
 TEST(ThreadSafeQueue, Simple) {
   ThreadSafeQueue<Session> queue;
   typedef enum {

@@ -32,19 +32,25 @@ class ThreadSafeQueue {
   T* GetNextAvailable() {
     T* next = nullptr;
     m_mutex.Lock();
+    cout << "Entered GetNextAvailable's lock\n";
     while (m_queue.empty()) {
+      cout << "About to go to wait\n";
       m_cv.Wait(&m_mutex);
+      cout << "awoke from wait state\n";
     }
 
     next = m_queue.front();
     m_queue.pop();
     m_mutex.Unlock();
+    cout << "GetNextAvailable returning " << (next) << "\n";
     return next;
   }
 
   void Add(T* item) {
     m_mutex.Lock();
+    cout << "Entered Add's lock\n";
     m_queue.push(item);
+    cout << "About to signal all\n";
     m_cv.SignalAll();
     m_mutex.Unlock();
   }
