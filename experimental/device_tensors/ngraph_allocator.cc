@@ -15,6 +15,4 @@ limitations under the License.
 
 #include "ngraph_allocator.h"
 
-namespace ngraph_bridge {
-
-}  // namespace ngraph_bridge
+namespace ngraph_bridge {}  // namespace ngraph_bridge

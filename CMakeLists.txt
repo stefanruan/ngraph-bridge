@@ -352,7 +352,6 @@ add_subdirectory(third-party)
 add_subdirectory(logging)
 add_subdirectory(ngraph_bridge)
 add_subdirectory(tools)
-add_subdirectory(experimental)
 
 # The following targets depend on the Tensorflow source code directory
 # Get the absolute file name for the source
@@ -362,10 +361,14 @@ get_filename_component(
     ABSOLUTE
 )
 
-add_subdirectory(examples)
+#add_subdirectory(examples)
+
 if (DEFINED TF_SRC_DIR)
+    # These have to be added after the TF SRC definitation
+    # Ad these projects depent on TF CC library 
     message(STATUS "TensorFlow_SRC_DIR: ${TensorFlow_SRC_DIR}")
     add_subdirectory(examples/cpp)
+    add_subdirectory(experimental)
 else()
     message(
         STATUS 
@@ -393,4 +396,5 @@ if (UNIT_TEST_ENABLE)
     add_subdirectory(test)
     message(STATUS "unit tests enabled")
 endif()
+
 
