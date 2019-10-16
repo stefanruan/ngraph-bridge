@@ -40,7 +40,26 @@ namespace tf = tensorflow;
 // The allocator class will also take the atrributes - which will
 // help determine whether the tensor is on device or on host
 //
+// Defined in allocator.h
+// AllocatorAttributes --> Key structure that defines useful attributes
+// Usefule function: on_host()
+// 
+// Useful API examples for host/device tensor movement in:
+// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/common_runtime/copy_tensor.cc
 // TBD
+// Instead of exposing the Allocator class - define a factory mwethod?
+
+// Here are some thoughts
+// ScopedAllocator is a friend of Tensor - so it can access the _buf i.e., 
+// actual storage buffer of a tensor
+// DMAHelper is nother such friend
+// But you cannot subclass them
+
+// KEY is the following
+// From the user allocated Tensor - determne the attributes to see whether this is a
+// device or a host tensor
+// To get the buffer from the Tensor:
+// DMAHelper::buffer(input_tensor)
 namespace ngraph_bridge {
 
 class NGraphSubAllocator : public tf::BasicCPUAllocator {
