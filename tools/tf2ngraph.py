@@ -115,6 +115,7 @@ def update_config_to_include_custom_config(config, backend, device_id,
     rewriter_options.meta_optimizer_iterations = (
         rewriter_config_pb2.RewriterConfig.ONE)
     rewriter_options.min_graph_nodes = -1
+    rewriter_options.fail_on_optimizer_errors = True
     ngraph_optimizer = rewriter_options.custom_optimizers.add()
     ngraph_optimizer.name = "ngraph-optimizer"
     ngraph_optimizer.parameter_map["ngraph_backend"].s = backend.encode()
