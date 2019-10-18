@@ -102,10 +102,10 @@ class Tf2ngraphJson(object):
 def exit_on_error(success, error_message, assert_on_failure=False):
     if not success:
         if assert_on_failure:
+            assert success, error_message
+        else:
             sys.stderr.write("\n" + error_message + "\n")
             sys.exit(1)
-        else:
-            assert success, error_message
 
 
 def update_config_to_include_custom_config(config, backend, device_id,
