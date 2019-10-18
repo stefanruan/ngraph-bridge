@@ -41,7 +41,6 @@ set_target_properties(
 
 set(SRC
     device_tensor_example.cpp
-    ngraph_allocator.cc
     tf_label_image_utils.cc
 )
 

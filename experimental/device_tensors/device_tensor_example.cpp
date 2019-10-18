@@ -34,6 +34,7 @@
 
 #include <iostream>
 #include <thread>
+
 #include "ngraph/event_tracing.hpp"
 #include "ngraph_backend_manager.h"
 #include "vector"
@@ -217,11 +218,17 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  ngraph_bridge::NGraphAllocator allocator(
-      new ngraph_bridge::NGraphSubAllocator(), "nGraph-Allocator");
+  std::unique_ptr<ngraph_bridge::NGraphAllocator> allocator =
+      ngraph_bridge::NGraphAllocator::CreateAllocator(backend, input_layer);
 
   const tf::Tensor& resized_tensor = resized_tensors[0];
-  tf::Tensor img_tensor(&allocator, resized_tensor.dtype(),
+
+  // Tensorflow will do the following:
+  //   1. Get the buffer where to copy the TF tensor
+  //     -  This buffer will be provided by the NGAllocator::AllocateRaw()
+  //   2. TF will do memcpy(to_this_buffer)
+  //   3. The TF tensor is now available in the memory provided by the NGAllocator 
+  tf::Tensor img_tensor(allocator.get(), resized_tensor.dtype(),
                         resized_tensor.shape());
 
   // Copy the Tensor. When we implement the device copy,

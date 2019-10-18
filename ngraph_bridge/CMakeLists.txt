@@ -34,6 +34,7 @@ message(STATUS "Shared Link Flags: ${CMAKE_SHARED_LINKER_FLAGS}")
 set(SRC 
    ngraph_api.cc
    ngraph_assign_clusters.cc
+   ngraph_allocator.cc
    ngraph_builder.cc
    ngraph_backend_manager.cc
    ngraph_capture_variables.cc
