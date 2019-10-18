@@ -171,8 +171,11 @@ def run_ngraph_grappler_optimizer(input_gdef, output_nodes, ng_backend,
     session_config = update_config_to_include_custom_config(
         session_config, ng_backend, device_id, backend_optional_params,
         shape_hints, do_aot)
-    output_gdef = tf_optimizer.OptimizeGraph(
-        session_config, grappler_meta_graph_def, graph_id=b"tf_graph")
+    try:
+        output_gdef = tf_optimizer.OptimizeGraph(
+            session_config, grappler_meta_graph_def, graph_id=b"tf_graph")
+    except Exception as e:
+        exit_on_error(False, e.message)
     return output_gdef
 
 

@@ -234,3 +234,6 @@ class Testtf2ngraph(NgraphTest):
         assert rc != 0
 
         os.remove(export_pbtxt)
+
+    def test_grappler_failure(self):
+        pass
