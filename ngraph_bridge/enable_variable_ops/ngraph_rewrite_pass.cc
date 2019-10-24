@@ -146,6 +146,7 @@ class NGraphVariableCapturePass : public NGraphRewritePass {
  public:
   Status Run(const GraphOptimizationPassOptions& options) override {
     // If we don't get a main graph, log that fact and bail.
+    cout << "NGraphVariableCapturePass:: \n";
     if (options.graph == nullptr) {
       NGRAPH_VLOG(0) << "NGraphVariableCapturePass: options.graph == nullptr";
       return Status::OK();
@@ -179,6 +180,7 @@ class NGraphVariableCapturePass : public NGraphRewritePass {
     std::set<string> skip_these_nodes = {};
     TF_RETURN_IF_ERROR(
         CaptureVariables(options.graph->get(), skip_these_nodes));
+
 
     if (DumpCapturedGraphs()) {
       DumpGraphs(options, idx, "captured", "Graph With Variables Captured");

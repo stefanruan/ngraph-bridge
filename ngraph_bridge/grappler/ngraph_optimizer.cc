@@ -112,7 +112,7 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
 
   // If requested, dump pre-capture graphs.
   if (DumpPrecaptureGraphs()) {
-    DumpGraphs(graph, idx, "precapture", "Pre-Capture Graph");
+    DumpGraphs(graph, idx, "precapture_grappler", "Pre-Capture Graph");
   }
 
   // If ngraph is disabled via ngraph_bridge api or NGRAPH_TF_DISABLE is set
