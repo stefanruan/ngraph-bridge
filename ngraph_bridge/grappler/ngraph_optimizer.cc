@@ -238,6 +238,13 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
 
   NGRAPH_VLOG(0) << "NGraph using backend: " << backend_creation_string;
 
+  // 0. Replace optimizers then, if requested, dump the graphs.
+    TF_RETURN_IF_ERROR(ReplaceModifiers(&graph, idx));
+    if (DumpReplacedModifiersGraphs()) {
+      DumpGraphs(graph, idx, "replaced_modifier",
+                 "Graph with Modifiers replaced");
+    }
+
   // 1. Mark for clustering then, if requested, dump the graphs.
   TF_RETURN_IF_ERROR(
       MarkForClustering(&graph, skip_these_nodes, backend_creation_string));

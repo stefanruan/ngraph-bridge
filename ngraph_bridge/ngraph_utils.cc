@@ -516,6 +516,23 @@ void OpControlOrder(const std::shared_ptr<ngraph::Function>& ng_function,
 }
 #endif
 
+#if defined(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
+bool DumpReplacedModifiersGraphs() {
+  return DumpAllGraphs() ||
+         std::getenv("NGRAPH_TF_DUMP_REPLACEDMODIFIERS_GRAPHS") != nullptr;
+}
+
+bool DumpCatalogedGraphs() {
+  return DumpAllGraphs() ||
+         std::getenv("NGRAPH_TF_DUMP_CATALOGED_GRAPHS") != nullptr;
+}
+
+bool DumpRemoveNGraphAssignsGraphs() {
+  return DumpAllGraphs() ||
+         std::getenv("NGRAPH_TF_DUMP_REMOVENGASSIGNS_GRAPHS") != nullptr;
+}
+#endif
+
 bool IsProcessedByNgraphPass(Graph* g) {
   // TODO: place a dummy node as a marker
   // Current method may fail when graph has no encapsulates after first pass

@@ -535,6 +535,7 @@ TEST(RemoveNGraphAssigns, Graph6) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+  // test fails, because we do not go thru grappler
 
   // Run on nGraph
   ActivateNGraph();

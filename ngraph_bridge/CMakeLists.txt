@@ -91,11 +91,18 @@ endif()
 
 
 if(NGRAPH_TF_USE_GRAPPLER_OPTIMIZER)            
-    list(REMOVE_ITEM SRC ngraph_rewrite_pass.cc)
+    if(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
+        list(REMOVE_ITEM SRC enable_variable_ops/ngraph_rewrite_pass.cc)
+    else()
+        list(REMOVE_ITEM SRC ngraph_rewrite_pass.cc)
+    endif()
     list(APPEND SRC grappler/ngraph_optimizer.cc)
     list(APPEND SRC grappler/ngraph_add_identityn.cc)
     add_definitions(-DNGRAPH_TF_USE_GRAPPLER_OPTIMIZER)
 endif()
+
+
+
 
 message(STATUS "NGRAPH_TF_USE_GRAPPLER_OPTIMIZER: ${NGRAPH_TF_USE_GRAPPLER_OPTIMIZER}")
 

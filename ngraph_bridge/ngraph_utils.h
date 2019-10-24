@@ -342,6 +342,18 @@ bool DumpEncapsulatedGraphs();
 
 bool DumpTrackedGraphs();
 
+
+#if defined(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
+// TODO. DumpReplacedModifiersGraphs is in ngraph_bridge/enable_variable_ops/ngraph_rewrite_pass.cc also.
+// unify that
+bool DumpReplacedModifiersGraphs();
+
+bool DumpCatalogedGraphs();
+
+bool DumpRemoveNGraphAssignsGraphs();
+#endif
+
+
 #if defined(NGRAPH_DISTRIBUTED)
 // Insert constrol dependency for AllReduce ops to ensure execution order
 void OpControlOrder(const std::shared_ptr<ngraph::Function>&,
