@@ -95,7 +95,7 @@ Status NgraphOptimizer::Init(
 Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
                                  const tensorflow::grappler::GrapplerItem& item,
                                  GraphDef* output) {
-  NGRAPH_VLOG(3) << "NGTF_OPTIMIZER: Here at NgraphOptimizer ";
+  cout << "NGTF_OPTIMIZER: Here at NgraphOptimizer \n";
   NGRAPH_VLOG(5) << "NGTF_OPTIMIZER: grappler item id " << item.id;
 
   // Convert the GraphDef to Graph
@@ -190,10 +190,11 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
   //
 
   // Do variable capture then, if requested, dump the graphs.
-  TF_RETURN_IF_ERROR(CaptureVariables(&graph, skip_these_nodes));
-  if (DumpCapturedGraphs()) {
-    DumpGraphs(graph, idx, "captured", "Graph With Variables Captured");
-  }
+  // Not capturing here, since we are using GraphOptimizationPass to Capture
+  //TF_RETURN_IF_ERROR(CaptureVariables(&graph, skip_these_nodes));
+  //if (DumpCapturedGraphs()) {
+  //  DumpGraphs(graph, idx, "captured", "Graph With Variables Captured");
+  //}
 
   //
   // Encapsulation: Part that rewrites the graph for nGraph operation.

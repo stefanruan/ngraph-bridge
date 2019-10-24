@@ -384,8 +384,14 @@ class NGraphEncapsulationPass : public NGraphRewritePass {
 
 }  // namespace ngraph_bridge
 
+
+
 REGISTER_OPTIMIZATION(OptimizationPassRegistry::POST_PLACEMENT, 0,
                       ngraph_bridge::NGraphVariableCapturePass);
+
+// In case we have Grappler, we need NGraphVariableCapturePass but not NGraphEncapsulationPass
+#if !defined(NGRAPH_TF_USE_GRAPPLER_OPTIMIZER)
 REGISTER_OPTIMIZATION(OptimizationPassRegistry::POST_REWRITE_FOR_EXEC, 0,
                       ngraph_bridge::NGraphEncapsulationPass);
+#endif
 }  // namespace tensorflow

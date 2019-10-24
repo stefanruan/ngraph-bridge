@@ -78,7 +78,7 @@ with tf.Session(config=config_ngraph_enabled) as sess:
         print(i)
         event_times.append(timeline.Timeline(run_metadata.step_stats))
 
-    #print("Final value: ", x.eval())
+    print("Final value: ", x.eval())
     print("Writing event trace")
     with open('tf_event_trace.json', 'w') as f:
         f.write("[\n")

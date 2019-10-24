@@ -91,9 +91,9 @@ endif()
 
 
 if(NGRAPH_TF_USE_GRAPPLER_OPTIMIZER)            
-    if(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
-        list(REMOVE_ITEM SRC enable_variable_ops/ngraph_rewrite_pass.cc)
-    else()
+    # If its grappler + varopts, we do not remove the ngraph_rewrite_pass file
+    # because w e want it for the CaptureVar Pass
+    if(NOT NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
         list(REMOVE_ITEM SRC ngraph_rewrite_pass.cc)
     endif()
     list(APPEND SRC grappler/ngraph_optimizer.cc)

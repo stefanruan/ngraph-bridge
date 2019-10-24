@@ -282,6 +282,7 @@ class NGraphEncapsulationPass : public NGraphRewritePass {
 
 }  // namespace ngraph_bridge
 
+
 REGISTER_OPTIMIZATION(OptimizationPassRegistry::POST_PLACEMENT, 0,
                       ngraph_bridge::NGraphVariableCapturePass);
 REGISTER_OPTIMIZATION(OptimizationPassRegistry::POST_REWRITE_FOR_EXEC, 0,
