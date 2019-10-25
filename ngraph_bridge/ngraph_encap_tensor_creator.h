@@ -26,17 +26,17 @@ class NGraphEncapTensorCreator {
   NGraphEncapTensorCreator(ng::runtime::Backend, ng::runtime::Executable, OpKernelContext* );
   
     // default type which is the backend->create_tensor
-    shared_ptr<ng::runtime::tensor> GetTensor(NGraphEncapTensorMeta) {
+    shared_ptr<ng::runtime::tensor> LookUpOrCreateTensor(NGraphEncapTensorMeta) {
         return backend->create_tensor();
         // needs data type and shape so should NGraphEncapTensorMeta store it
     }
 
-    vector<shared_ptr<ng::runtime::tensor>> GetTensor(NGraphEncapTensorMeta,
+    vector<shared_ptr<ng::runtime::tensor>> LookUpOrCreateTensor(NGraphEncapTensorMeta,
                                                     int pipeline_depth) {
 
                                                     }
     // Var create tensor
-  shared_ptr<ng::runtime::tensor> GetTensor(NGraphEncapVariableTensorMeta) {
+  shared_ptr<ng::runtime::tensor> LookUpOrCreateTensor(NGraphEncapVariableTensorMeta) {
     String var_shared_name = NGraphEncapVariableTensorMeta->GetSharedName()
 
     // 1. Find Var from the ctx
@@ -47,7 +47,7 @@ class NGraphEncapTensorCreator {
  
   
     // executable create tensor   
-  shared_ptr<ng::runtime::tensor> GetTensor(NGraphEncapDataTensorMeta) {
+  shared_ptr<ng::runtime::tensor> LookUpOrCreateTensor(NGraphEncapDataTensorMeta) {
     if(NGraphEncapDataTensorMeta->GetIsInput()){
         ng_exec->create_input_tensor(NGraphEncapDataTensorMeta->GetIndex());
     }
@@ -56,7 +56,7 @@ class NGraphEncapTensorCreator {
   
   }
 
-  vector<shared_ptr<ng::runtime::tensor>> GetTensor(NGraphEncapDataTensorMeta,
+  vector<shared_ptr<ng::runtime::tensor>> LookUpOrCreateTensor(NGraphEncapDataTensorMeta,
                                                     int pipeline_depth) {
     if(NGraphEncapDataTensorMeta->GetIsInput()){
         return ng_exec->create_input_tensor(NGraphEncapDataTensorMeta->GetIndex(), pipeline_depth);

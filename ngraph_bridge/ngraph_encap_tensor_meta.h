@@ -36,12 +36,12 @@ class NGraphEncapTensorMeta {
   // Accept Visitor to Create the Tensor
   shared_ptr<ng::runtime::tensor> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator) {
-    return ng_tensor_creator->GetTensor(*this);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this);
   }
 
   vector<shared_ptr<ng::runtime::tensor>> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator, int pipeline_depth) {
-    return ng_tensor_creator->GetTensor(*this, pipeline_depth);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this, pipeline_depth);
   }
 
   // Write/Read
@@ -64,12 +64,12 @@ class NGraphEncapDataTensorMeta : public NGraphEncapTensorMeta {
   // Accept Visitor to Create the Tensor
   shared_ptr<ng::runtime::tensor> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator) {
-    return ng_tensor_creator->GetTensor(*this);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this);
   }
 
   vector<shared_ptr<ng::runtime::tensor>> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator, int pipeline_depth) {
-    return ng_tensor_creator->GetTensor(*this, pipeline_depth);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this, pipeline_depth);
   }
 
   // Write/Read
@@ -90,12 +90,12 @@ class NGraphEncapVariableTensorMeta : public NGraphEncapTensorMeta {
   // Accept Visitor to Create the Tensor
   shared_ptr<ng::runtime::tensor> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator) {
-    return ng_tensor_creator->GetTensor(*this);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this);
   }
   
   vector<shared_ptr<ng::runtime::tensor>> GetTensor(
       NGraphEncapTensorCreator ng_tensor_creator, int pipeline_depth) {
-    return ng_tensor_creator->GetTensor(*this, pipeline_depth);
+    return ng_tensor_creator->LookUpOrCreateTensor(*this, pipeline_depth);
   }
 
   // Write/Read
