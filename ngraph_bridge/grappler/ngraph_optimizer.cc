@@ -176,12 +176,25 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
   // If the fetch node in question has 0 outputs or any of the outputs
   // has ref type as a data type then don't add IdentityN node, but the fetch
   // node will be skipped from capturing and marking for clustering.
+  for (auto i : nodes_to_add_identity_to) {
+    cout << "---> " << i << "\n";
+  }
   TF_RETURN_IF_ERROR(AddIdentityN(&graph, nodes_to_add_identity_to));
+  DumpGraphs(graph, idx, "AddIdN", "Graph With IdN");
 
   nodes_to_preserve.insert(nodes_to_add_identity_to.begin(),
                            nodes_to_add_identity_to.end());
   std::set<string>& skip_these_nodes = nodes_to_preserve;
 
+
+#if defined(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
+  // 0. Replace optimizers then, if requested, dump the graphs.
+  TF_RETURN_IF_ERROR(ReplaceModifiers(&graph, idx));
+  if (DumpReplacedModifiersGraphs()) {
+    DumpGraphs(graph, idx, "replaced_modifier",
+               "Graph with Modifiers replaced");
+  }
+#endif
   //
   // Variable capture: Part that replaces all instances of VariableV2 with the
   // NGraphVariable op. Making this replacement allows us to substitute in a
@@ -282,12 +295,31 @@ Status NgraphOptimizer::Optimize(tensorflow::grappler::Cluster* cluster,
                "Graph with Variables Rewritten for Tracking");
   }
 
+  #if defined(NGRAPH_TF_ENABLE_VARIABLES_AND_OPTIMIZERS)
+  // Enter in catalog then.
+  TF_RETURN_IF_ERROR(EnterInCatalog(&graph, idx));
+  if (DumpCatalogedGraphs()) {
+    DumpGraphs(graph, idx, "cataloged",
+               "Graph with Variables Inputs Entered in Catalog");
+  }
+
+  // Remove Certain NGraphAssigns then.
+  TF_RETURN_IF_ERROR(RemoveNGraphAssigns(&graph));
+  if (DumpRemoveNGraphAssignsGraphs()) {
+    DumpGraphs(graph, idx, "ngraphssigns_optimized",
+               "Graph with NGraphAssigns Optimized/Removed");
+  }
+#endif
+
+  cout << "HERE grappler optimizer 10\n";
+
   // Convert the graph back to Graphdef
   graph.ToGraphDef(output);
   // According to the doc, the message takes ownership of the allocated object
   // https://developers.google.com/protocol-buffers/docs/reference/cpp-generated#proto3_string
   // Hence no need to free fdeflib_new
   output->set_allocated_library(fdeflib_new);
+    cout << "HERE grappler optimizer 11\n";
   return Status::OK();
 }
 
