@@ -37,6 +37,7 @@ namespace testing {
 
 // ReplaceModifier
 TEST(ReplaceModifier, Momentum1) {
+  cout << "here0\n";
   Scope root = Scope::NewRootScope();
 
   PartialTensorShape varShape({2, 2});
@@ -71,6 +72,26 @@ TEST(ReplaceModifier, Momentum1) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
+
+
 
   // Run on nGraph
   ActivateNGraph();
@@ -78,14 +99,18 @@ TEST(ReplaceModifier, Momentum1) {
   std::vector<tensorflow::Tensor> ng_outputs1;
   std::vector<tensorflow::Tensor> ng_outputs2;
   std::vector<tensorflow::Tensor> ng_outputs3;
+  cout << "here1\n";
+  // Cannot construct IdN because of reftype
   ASSERT_OK(ng_session.Run({{var_assign, accum_assign}}, &ng_outputs1));
 
   // Run on TF
   for (int i = 0; i < 10; i++) {
+    cout << "here2\n";
     ASSERT_OK(ng_session.Run({applymomentum_f}, &ng_outputs2));
   }
 
   for (int i = 0; i < 10; i++) {
+    cout << "here3\n";
     ASSERT_OK(ng_session.Run({applymomentum_t}, &ng_outputs3));
   }
 
@@ -96,13 +121,16 @@ TEST(ReplaceModifier, Momentum1) {
   std::vector<tensorflow::Tensor> tf_outputs1;
   std::vector<tensorflow::Tensor> tf_outputs2;
   std::vector<tensorflow::Tensor> tf_outputs3;
+  cout << "here4\n";
   ASSERT_OK(tf_session.Run({{var_assign, accum_assign}}, &tf_outputs1));
 
   for (int i = 0; i < 10; i++) {
+    cout << "here5\n";
     ASSERT_OK(tf_session.Run({applymomentum_f}, &tf_outputs2));
   }
 
   for (int i = 0; i < 10; i++) {
+    cout << "here6\n";
     ASSERT_OK(tf_session.Run({applymomentum_t}, &tf_outputs3));
   }
 
