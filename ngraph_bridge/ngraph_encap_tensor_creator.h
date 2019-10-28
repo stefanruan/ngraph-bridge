@@ -53,7 +53,7 @@ class NGraphEncapTensorCreator {
     }
     else{
         ng_exec->create_output_tensor(NGraphEncapDataTensorMeta->GetIndex());
-  
+    }
   }
 
   vector<shared_ptr<ng::runtime::tensor>> LookUpOrCreateTensor(NGraphEncapDataTensorMeta,
@@ -66,12 +66,16 @@ class NGraphEncapTensorCreator {
                                        pipeline_depth);
     }
   }
-};
 
 members:
 backend
 exec
 context
+
+
+
+};
+
 
 }  // ngraph_bridge
 }  // tensorflow

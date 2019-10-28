@@ -49,10 +49,8 @@ private:
     int m_number_of_inputs_;
     int m_number_of_outputs_;
     NGraphEncapTensorManager ng_encap_tensor_manager_;
-}
-
-
 };
+
 
 
 
