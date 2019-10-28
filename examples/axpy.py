@@ -38,9 +38,9 @@ print('Saving graph to: %s' % graph_location)
 train_writer = tf.summary.FileWriter(graph_location)
 
 # Define the data
-a = tf.constant(np.full((2048, 2048), 0.05, dtype=np.float32), name='alpha')
-x = tf.placeholder(tf.float32, [None, 2048], name='x')
-y = tf.placeholder(tf.float32, shape=(2048, 2048), name='y')
+a = tf.constant(np.full((2, 2), 0.05, dtype=np.float32), name='alpha')
+x = tf.placeholder(tf.float32, [None, 2], name='x')
+y = tf.placeholder(tf.float32, shape=(2, 2), name='y')
 
 c = a * x
 axpy = c + y
@@ -59,11 +59,12 @@ with tf.Session(config=config_ngraph_enabled) as sess:
     run_metadata = tf.RunMetadata()
 
     event_times = []
-    for i in range(10):
+    for i in range(2):
+        #import pdb; pdb.set_trace()
         (result_axpy, result_c) = sess.run((axpy, c),
                                            feed_dict={
-                                               x: np.ones((2048, 2048)),
-                                               y: np.ones((2048, 2048)),
+                                               x: np.ones((2, 2)),
+                                               y: np.ones((2, 2)),
                                            },
                                            options=options,
                                            run_metadata=run_metadata)

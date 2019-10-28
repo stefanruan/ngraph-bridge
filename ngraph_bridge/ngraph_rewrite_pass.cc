@@ -37,6 +37,11 @@
 #include "ngraph/distributed.hpp"
 #endif
 
+
+#include "tensorflow/core/grappler/grappler_item.h"
+#include "tensorflow/core/grappler/optimizers/meta_optimizer.h"
+
+
 using namespace std;
 
 namespace tensorflow {
@@ -189,6 +194,29 @@ class NGraphEncapsulationPass : public NGraphRewritePass {
       NGRAPH_VLOG(0) << "NGraphEncapsulationPass: options.graph == nullptr";
       return Status::OK();
     }
+
+    grappler::GrapplerItem item;
+    options.graph->get()->ToGraphDef(&item.graph);
+    ConfigProto config_proto;
+    auto& rewriter_config =
+      *config_proto.mutable_graph_options()->mutable_rewrite_options();
+    rewriter_config.set_constant_folding(tensorflow::RewriterConfig::ON);
+    rewriter_config.set_remapping(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_arithmetic_optimization(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_dependency_optimization(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_loop_optimization(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_function_optimization(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_scoped_allocator_optimization(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_implementation_selector(tensorflow::RewriterConfig::OFF);
+    rewriter_config.set_layout_optimizer(tensorflow::RewriterConfig::OFF);
+
+
+    tensorflow::grappler::MetaOptimizer optimizer(nullptr, config_proto);
+    GraphDef output;
+    cout << "In RUN: calling grappler Optimize ---------------\n";
+    TF_RETURN_IF_ERROR(optimizer.Optimize(nullptr, item, &output));
+    cout << "In RUN: Done calling grappler Optimize ---------------\n";
+
 
     // For filename generation purposes, grab a fresh index. This is just an
     // arbitrary integer to avoid filename collisions resulting from subsequent
