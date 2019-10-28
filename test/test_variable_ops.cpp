@@ -50,6 +50,8 @@ TEST(VariableTest, SmallGraph1) {
 
   auto assign = ops::Assign(root.WithOpName("Assign"), var, add);
 
+    // TODO: lots of codedup. make a helper function
+
   // Turn off optimizations so that all the nodes are processed
   tensorflow::SessionOptions options;
   options.config.mutable_graph_options()
@@ -58,6 +60,24 @@ TEST(VariableTest, SmallGraph1) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
@@ -131,6 +151,24 @@ TEST(VariableTest, SmallGraph2) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+      if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
@@ -201,6 +239,24 @@ TEST(VariableTest, SmallGraph3) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+      if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
@@ -302,6 +358,24 @@ TEST(VariableTest, SmallGraph4) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+      if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
@@ -385,6 +459,24 @@ TEST(VariableTest, SmallGraph5) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+      if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
@@ -457,6 +549,24 @@ TEST(VariableTest, SmallGraph6) {
   options.config.mutable_graph_options()
       ->mutable_rewrite_options()
       ->set_constant_folding(tensorflow::RewriterConfig::OFF);
+      if (tensorflow::ngraph_bridge::ngraph_tf_is_grappler_enabled()) {
+       cout << "Adding grappler pass --- \n";
+    auto* custom_config = options.config.mutable_graph_options()
+                              ->mutable_rewrite_options()
+                              ->add_custom_optimizers();
+
+    custom_config->set_name("ngraph-optimizer");
+    (*custom_config->mutable_parameter_map())["ngraph_backend"].set_s("CPU");
+    (*custom_config->mutable_parameter_map())["device_id"].set_s("1");
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_min_graph_nodes(-1);
+
+    options.config.mutable_graph_options()
+        ->mutable_rewrite_options()
+        ->set_meta_optimizer_iterations(tensorflow::RewriterConfig::ONE);
+  }
 
   // Run on nGraph
   ActivateNGraph();
