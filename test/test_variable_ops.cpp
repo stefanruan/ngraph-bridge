@@ -485,16 +485,27 @@ TEST(VariableTest, SmallGraph5) {
   std::vector<tensorflow::Tensor> ng_outputs2;
   std::vector<tensorflow::Tensor> ng_outputs3;
 
+  cout << "here1\n";
+
   ASSERT_OK(ng_session.Run(
       {
           var_assign,
       },
       &ng_outputs1));
+  cout << "here2\n"; 
   for (int i = 0; i < 20; i++) {
+      cout << "here3\n";
     ASSERT_OK(ng_session.Run({add}, &ng_outputs2));
   }
 
+  cout << "here4\n";
+
+    // This fails, because "var" is now renamed to Var_ngraph/_0 with AddIdentityN
+    // The VariableV2 is not replaced to NGraphVariableV2 though
+    // why does the test fail thinking its uninitialized? maybe because shared name is taken from the var name, and that has changed now
+    // Perhaps: when adding IdN to vars (same with ngvars?), we should keep their shared_name same (old name)
   ASSERT_OK(ng_session.Run({var}, &ng_outputs3));
+  cout << "here4.5\n";
 
   // Run on TF
   DeactivateNGraph();
@@ -502,7 +513,7 @@ TEST(VariableTest, SmallGraph5) {
   std::vector<tensorflow::Tensor> tf_outputs1;
   std::vector<tensorflow::Tensor> tf_outputs2;
   std::vector<tensorflow::Tensor> tf_outputs3;
-
+cout << "here5\n";
   ASSERT_OK(tf_session.Run(
       {
           var_assign,
