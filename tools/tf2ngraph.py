@@ -501,4 +501,4 @@ if __name__ == '__main__':
     # TODO what happens if same shape is passed twice
 
 
-# python tools/tf2ngraph.py --input_savedmodel ./examples/train_model_sample/mnist_model --output_savedmodel OUT --output_nodes optimizer
+# python tools/tf2ngraph.py --input_savedmodel ./examples/train_model_sample/mnist_model --output_savedmodel OUT --output_nodes x,pred,y,accuracy,cost,optimizer

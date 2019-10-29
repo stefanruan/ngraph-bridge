@@ -71,13 +71,14 @@ def get_tensors_from_graph(graph):
     return graph.get_tensor_by_name('x:0'), graph.get_tensor_by_name('pred:0'), graph.get_tensor_by_name('y:0'), graph.get_tensor_by_name('accuracy:0'), graph.get_tensor_by_name('cost:0'), graph.get_operation_by_name('optimizer')
 
 def train_function(export_path, import_model):
+    if export_path == 'mnist_model2':
+        import ngraph_bridge
 
     # Start training
     with tf.Session() as sess:
         print("Num nodes in graph", len(sess.graph.get_operations()))
         if (import_model is not None):
             model = restore_from_chkpt(sess, import_model)
-            sess.graph.get_tensor_by_name('Variable_1:0')
             x, pred, y, accuracy, cost, optimizer = get_tensors_from_graph(sess.graph)
         else:
             x, pred, y, accuracy, init, cost, optimizer = generate_full_network_from_code()
@@ -115,9 +116,12 @@ def train_function(export_path, import_model):
 if sys.argv[1] == '0':
     # Simulate training for the first time
     train_function("mnist_model", None)
-else:
+elif sys.argv[1] == '1':
     # Simulate training from continuing from a half-trained mdoel
     train_function("mnist_model1", "mnist_model")
+else:
+    # load from tf2ngraph dumped graph
+    train_function("mnist_model2", "../../OUT")
 
 
 
