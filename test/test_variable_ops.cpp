@@ -36,6 +36,7 @@ namespace ngraph_bridge {
 namespace testing {
 
 // Simple Graph
+// These tests might be failing because grappler does not add idn to ref outs
 TEST(VariableTest, SmallGraph1) {
   Scope root = Scope::NewRootScope();
 
@@ -50,7 +51,7 @@ TEST(VariableTest, SmallGraph1) {
 
   auto assign = ops::Assign(root.WithOpName("Assign"), var, add);
 
-    // TODO: lots of codedup. make a helper function
+    // TODO: lots of code-duplication. make a helper function
 
   // Turn off optimizations so that all the nodes are processed
   tensorflow::SessionOptions options;
