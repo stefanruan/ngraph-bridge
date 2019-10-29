@@ -214,14 +214,14 @@ def get_gdef(format, location):
         'pb': get_gdef_from_protobuf
     }[format](location)
     already_processed, has_variables = check_graph_validity(gdef)
-    if already_processed or has_variables:
+    if already_processed:
         err_string = ["Graph at " + location + " is not acceptable because:"]
         if already_processed:
             err_string.append(
                 "It already contains encapsulate ops (and migth not need running through tf2ngraph again)"
             )
-        if no_variables:
-            err_string.apend(
+        if has_variables:
+            err_string.append(
                 "It contains Variables (please freeze the graph to convert variables to constant)"
             )
         exit_on_error(False, '\n'.join(err_string))
@@ -499,3 +499,6 @@ if __name__ == '__main__':
     main()
 
     # TODO what happens if same shape is passed twice
+
+
+# python tools/tf2ngraph.py --input_savedmodel ./examples/train_model_sample/mnist_model --output_savedmodel OUT --output_nodes optimizer
