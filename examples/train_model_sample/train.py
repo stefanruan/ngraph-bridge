@@ -58,17 +58,14 @@ def generate_full_network_from_code():
     y = tf.placeholder(tf.float32, [None, 10], name='y') # 0-9 digits recognition => 10 classes
     accuracy = eval_model(pred, y)
 
-    # Initialize the variables (i.e. assign their default value)
-    init = tf.global_variables_initializer()
-
     # Minimize error using cross entropy
     cost = tf.reduce_mean(-tf.reduce_sum(y*tf.log(pred), reduction_indices=1), name='cost')
     # Gradient Descent
     optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name='optimizer')
-    return x, pred, y, accuracy, init, cost, optimizer
+    return x, pred, y, accuracy, cost, optimizer
 
-def get_tensors_from_graph(graph):
-    return graph.get_tensor_by_name('x:0'), graph.get_tensor_by_name('pred:0'), graph.get_tensor_by_name('y:0'), graph.get_tensor_by_name('accuracy:0'), graph.get_tensor_by_name('cost:0'), graph.get_operation_by_name('optimizer')
+def get_tensors_from_graph(graph, processed):
+    return graph.get_tensor_by_name('x' +('','_ngraph/_1')[processed] + ':0'), graph.get_tensor_by_name('pred:0'), graph.get_tensor_by_name('y' +('','_ngraph/_0')[processed] + ':0'), graph.get_tensor_by_name('accuracy:0'), graph.get_tensor_by_name('cost:0'), graph.get_operation_by_name('optimizer')
 
 def train_function(export_path, import_model):
     if export_path == 'mnist_model2':
@@ -79,11 +76,15 @@ def train_function(export_path, import_model):
         print("Num nodes in graph", len(sess.graph.get_operations()))
         if (import_model is not None):
             model = restore_from_chkpt(sess, import_model)
-            x, pred, y, accuracy, cost, optimizer = get_tensors_from_graph(sess.graph)
+            # TODO hacky
+            processed = export_path == 'mnist_model2'
+            x, pred, y, accuracy, cost, optimizer = get_tensors_from_graph(sess.graph, processed)
         else:
-            x, pred, y, accuracy, init, cost, optimizer = generate_full_network_from_code()
+            x, pred, y, accuracy, cost, optimizer = generate_full_network_from_code()
             # Run the initializer
-            sess.run(init) 
+        sess.run(tf.global_variables_initializer())
+        # NGVariables are not init-ed correctly (when loading from tf2ngraph dumped saved_model)
+        # Need to check resnet checkpointing, how does that work?
             
 
         # Training cycle
@@ -122,8 +123,12 @@ elif sys.argv[1] == '1':
 else:
     # load from tf2ngraph dumped graph
     train_function("mnist_model2", "../../OUT")
+    # loads and trains.. but from scratch
 
 
 
 # https://www.tensorflow.org/guide/checkpoint
-# checkpoints are now completely tied with keras
+# modern checkpoints are now completely tied with keras !!??
+
+
+## python ../../tools/tf2ngraph.py --input_savedmodel ./mnist_model --output_savedmodel OUT --output_nodes x,pred,y,accuracy,cost,optimizer
