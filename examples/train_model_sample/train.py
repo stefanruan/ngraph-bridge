@@ -82,7 +82,7 @@ def train_function(export_path, import_model):
         else:
             x, pred, y, accuracy, cost, optimizer = generate_full_network_from_code()
             # Run the initializer
-        sess.run(tf.global_variables_initializer())
+            sess.run(tf.global_variables_initializer())
         # NGVariables are not init-ed correctly (when loading from tf2ngraph dumped saved_model)
         # Need to check resnet checkpointing, how does that work?
             
