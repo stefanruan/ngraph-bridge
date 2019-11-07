@@ -707,6 +707,10 @@ Status MarkForClustering(Graph* graph, const std::set<string> skip_these_nodes,
   vector<Node*> variable_type_nodes;
 
   for (auto node : graph->op_nodes()) {
+    int hello_value = -1;
+
+    GetNodeAttr(node->attrs(), "hello", &hello_value);
+    cout << node->name() << " : " << hello_value << "\n";
     bool mark_for_clustering = false;
 
     if (IsNGVariableType(node->type_string())) {
