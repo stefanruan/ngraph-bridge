@@ -56,6 +56,10 @@ File: tensorflow/core/kernels/data/prefetch_dataset_op.cc
 #include "ngraph_bridge/ngraph_utils.h"
 #include "ngraph_bridge/stats_utils.h"
 
+
+#include<thread>
+#include<chrono>
+
 namespace tensorflow {
 namespace data {
 
@@ -415,6 +419,8 @@ class NGraphPrefetchDatasetOp::Dataset : public DatasetBase {
             ngraph_bridge::NGraphPrefetchSharedResouce::RESOURCE_NAME,
             &shared_data);
         cout << "[sarkars][prefetch_dataset_op] called Lookup\n";
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
         if (s.ok()) {
           ngraph::Event evt_dev_cp("Prf Dev Copy", "Copy", "");
           shared_data->SetBufferDepth(m_buffer_size);
