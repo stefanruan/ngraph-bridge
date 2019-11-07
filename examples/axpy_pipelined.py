@@ -51,9 +51,10 @@ def build_data_pipeline(input_array, map_function, batch_size):
 
 
 if __name__ == '__main__':
-    input_array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    num_iter = 3
+    input_array = list(range(1, num_iter+1))
     multiplier = 10
-    for i in range(1, 10):
+    for i in range(1, num_iter+1):
         input_array[i - 1] = input_array[i - 1] * i * multiplier
     map_function = lambda x: x * multiplier
     batch_size = 1
@@ -66,7 +67,7 @@ if __name__ == '__main__':
         sess.run(tf.global_variables_initializer())
         sess.run(iterator.initializer)
 
-        for i in range(1, 10):
+        for i in range(1, num_iter+1):
             # Expected value is:
             expected_output = ((input_array[i - 1] * multiplier) * 5) + 10
 
@@ -77,3 +78,27 @@ if __name__ == '__main__':
             print("Iteration:", i, " Input: ", input_array[i - 1], " Output: ",
                   output[0], " Expected: ", expected_output)
             sys.stdout.flush()
+
+
+
+'''
+Hang logs:
+
+[PREFETCH] COMPUTE: Creating the shared object to signal prefetching
+Iteration: 1  Input:  10  Output:  510  Expected:  510
+[PREFETCH] COMPUTE: DEPTH: 0 skip count; 0
+Iteration: 2  Input:  40  Output:  4510  Expected:  2010
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 1
+Iteration: 3  Input:  90  Output:  8010  Expected:  4510
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 2
+Iteration: 4  Input:  160  Output:  12510  Expected:  8010
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 3
+Iteration: 5  Input:  250  Output:  18010  Expected:  12510
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 4
+Iteration: 6  Input:  360  Output:  24510  Expected:  18010
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 5
+Iteration: 7  Input:  490  Output:  32010  Expected:  24510
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 6
+Iteration: 8  Input:  640  Output:  40510  Expected:  32010
+[PREFETCH] COMPUTE: DEPTH: 1 skip count; 7
+'''

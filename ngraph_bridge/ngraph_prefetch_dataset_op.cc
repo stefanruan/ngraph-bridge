@@ -414,10 +414,12 @@ class NGraphPrefetchDatasetOp::Dataset : public DatasetBase {
             ngraph_bridge::NGraphPrefetchSharedResouce::CONTAINER_NAME,
             ngraph_bridge::NGraphPrefetchSharedResouce::RESOURCE_NAME,
             &shared_data);
+        cout << "[sarkars][prefetch_dataset_op] called Lookup\n";
         if (s.ok()) {
           ngraph::Event evt_dev_cp("Prf Dev Copy", "Copy", "");
           shared_data->SetBufferDepth(m_buffer_size);
           auto ng_io_tensors = shared_data->GetNextIoTensorsForDeviceTransfer();
+          cout << "[sarkars][prefetch_dataset_op] called GetNextIoTensorsForDeviceTransfer\n";
 
           // Write to these tensors
           for (auto i = 0; i < buffer_element.value.size(); i++) {
@@ -435,6 +437,7 @@ class NGraphPrefetchDatasetOp::Dataset : public DatasetBase {
                   current_src_ptr, 0,
                   ng_io_tensors.Inputs[i]->get_element_count() *
                       ng_element_type.size());
+              cout << "[sarkars][prefetch_dataset_op] called write\n";
             } catch (const std::exception& exp) {
               throw exp;
             } catch (...) {
@@ -445,6 +448,7 @@ class NGraphPrefetchDatasetOp::Dataset : public DatasetBase {
 
           // Now add them back to the other queue
           shared_data->AddNextIoTensorsReadyForDeviceExecution(ng_io_tensors);
+          cout << "[sarkars][prefetch_dataset_op] called AddNextIoTensorsReadyForDeviceExecution\n";
           shared_data->Unref();
           evt_dev_cp.Stop();
           ngraph::Event::write_trace(evt_dev_cp);

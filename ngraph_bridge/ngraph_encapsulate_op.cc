@@ -445,6 +445,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
   bool skip_tf2ng_copy = false;
   if (std::getenv(NGraphPrefetchSharedResouce::NGRAPH_TF_USE_PREFETCH) !=
       nullptr) {
+    cout << "[sarkars][compute] NGRAPH_TF_USE_PREFETCH not null\n";
     // Set the prefetch shared obj if applicable
     NGraphPrefetchSharedResouce* shared_data = nullptr;
     Status s = ctx->resource_manager()->Lookup(
@@ -462,6 +463,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
           name(), m_parallel_executor->GetOpBackendName(),
           m_parallel_executor->GetGraphId(),
           m_parallel_executor->GetNgraphClusterId());
+      cout << "[sarkars][compute] created NGraphPrefetchSharedResouce\n";
 
       // Get the set of IO tensors for the next iteration
       std::tuple<int, PipelinedTensorVector, PipelinedTensorVector>
@@ -479,16 +481,17 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
       ctx->SetStatus(ctx->resource_manager()->Create(
           NGraphPrefetchSharedResouce::CONTAINER_NAME,
           NGraphPrefetchSharedResouce::RESOURCE_NAME, shared_data));
+      cout << "[sarkars][compute] added NGraphPrefetchSharedResouce to resource manager\n";
 
       // Continue the execution with the currently supplied TF tensor for the
       // last time
-      NGRAPH_VLOG(2) << "[PREFETCH] COMPUTE: Creating the shared object to "
-                        "signal prefetching";
+      cout << "[PREFETCH] COMPUTE: Creating the shared object to "
+                        "signal prefetching\n";
     } else {
       int prefetch_buffer_depth = shared_data->GetBufferDepth();
       int skip_count = shared_data->GetSkipCount();
-      NGRAPH_VLOG(2) << "[PREFETCH] COMPUTE: DEPTH: " << prefetch_buffer_depth
-                     << " skip count; " << skip_count;
+      cout << "[PREFETCH] COMPUTE: DEPTH: " << prefetch_buffer_depth
+                     << " skip count; " << skip_count << "\n";
       if (skip_count >= prefetch_buffer_depth) {
         // We have been using the pipelined tensors - therefore do the
         // following:
@@ -500,6 +503,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
         //    nG tensors we got from the shared data
         auto ng_io_tensors_ready =
             shared_data->GetNextIoTensorsReadyForDeviceExecution();
+        cout << "[sarkars][compute] called GetNextIoTensorsReadyForDeviceExecution\n";
 
         // Add the next set of tensors for the next iteration
         shared_data->AddNextIoTensorsForDeviceTransfer(io_tensor_bundle);
