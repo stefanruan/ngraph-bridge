@@ -423,6 +423,8 @@ class NGraphPrefetchDatasetOp::Dataset : public DatasetBase {
 
         if (s.ok()) {
           ngraph::Event evt_dev_cp("Prf Dev Copy", "Copy", "");
+
+          cout << "[sarkars][prefetch_dataset_op] Setting buffer depth. m_buffer_size=" << m_buffer_size << "\n";
           shared_data->SetBufferDepth(m_buffer_size);
           auto ng_io_tensors = shared_data->GetNextIoTensorsForDeviceTransfer();
           cout << "[sarkars][prefetch_dataset_op] called GetNextIoTensorsForDeviceTransfer\n";

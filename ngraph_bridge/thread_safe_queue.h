@@ -35,11 +35,15 @@ class ThreadSafeQueue {
   T GetNextAvailable() {
     m_mutex.Lock();
     while (m_queue.empty()) {
+      cout << "[sarkars][queue] entered GetNextAvailable. Preparing to wait\n";
       m_cv.Wait(&m_mutex);
     }
 
+    cout << "[sarkars][queue] Done waiting in GetNextAvailable: m_queue.size() = " << m_queue.size() << "\n";
+
     T next = std::move(m_queue.front());
     m_queue.pop();
+    cout << "[sarkars][queue] nextavailable: " << m_queue.size() << "\n";
     m_mutex.Unlock();
     return next;
   }
@@ -47,6 +51,7 @@ class ThreadSafeQueue {
   void Add(T item) {
     m_mutex.Lock();
     m_queue.push(std::move(item));
+    cout << "[sarkars][queue] Add: " << m_queue.size() << "\n";
     m_cv.SignalAll();
     m_mutex.Unlock();
   }

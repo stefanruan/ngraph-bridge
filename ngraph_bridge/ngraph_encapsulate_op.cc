@@ -17,6 +17,9 @@
 #include <mutex>
 #include <utility>
 
+#include <chrono>
+#include <thread>
+
 #include "tensorflow/core/common_runtime/dma_helper.h"
 #include "tensorflow/core/common_runtime/function.h"
 #include "tensorflow/core/common_runtime/optimization_registry.h"
@@ -488,7 +491,13 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
       cout << "[PREFETCH] COMPUTE: Creating the shared object to "
                         "signal prefetching\n";
     } else {
-      int prefetch_buffer_depth = shared_data->GetBufferDepth();
+      int prefetch_buffer_depth = 0;
+      while(prefetch_buffer_depth == 0){
+        // GetBufferDepth could return 0, in case prefetch thread has not called SetBufferDepth
+        // busy wait till we get a non zero value
+        prefetch_buffer_depth = shared_data->GetBufferDepth();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
       int skip_count = shared_data->GetSkipCount();
       cout << "[PREFETCH] COMPUTE: DEPTH: " << prefetch_buffer_depth
                      << " skip count; " << skip_count << "\n";

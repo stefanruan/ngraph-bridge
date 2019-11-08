@@ -70,12 +70,14 @@ class NGraphPrefetchSharedResouce : public ResourceBase {
   // Adds the given nGraph tensor pair to write to
   // This is called by the NGraphEncapOp
   void AddNextIoTensorsForDeviceTransfer(IoTensorBundle next) {
+    cout << "[sarkars][prefetch_shared_data] Add to m_tf_2_ng\n";
     m_tf_2_ng.Add(std::move(next));
   }
 
   // Returns the IO tensors to be used top copy TF tensors to NG device
   // This will be called by the prefetcher
   IoTensorBundle GetNextIoTensorsForDeviceTransfer() {
+    cout << "[sarkars][prefetch_shared_data] get from m_tf_2_ng\n";
     return std::move(m_tf_2_ng.GetNextAvailable());
   }
 
@@ -83,12 +85,14 @@ class NGraphPrefetchSharedResouce : public ResourceBase {
   // This is called by the prefetcher to add Tensors that are copied
   // from TF tensor and are now ready for the next iteration
   void AddNextIoTensorsReadyForDeviceExecution(IoTensorBundle next) {
+    cout << "[sarkars][prefetch_shared_data] Add to m_ng_2_tf\n";
     m_ng_2_tf.Add(std::move(next));
   }
 
   // Returns the IO tensors to be ready to be executed by NG device
   // This will be called by the NGEncOp
   IoTensorBundle GetNextIoTensorsReadyForDeviceExecution() {
+    cout << "[sarkars][prefetch_shared_data] get from m_ng_2_tf\n";
     return std::move(m_ng_2_tf.GetNextAvailable());
   }
 
