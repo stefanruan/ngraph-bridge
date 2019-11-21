@@ -3537,13 +3537,11 @@ static Status TranslateQuantizedConv2DWithBiasMaybeReluAndRequantizeOp(
       std::vector<std::shared_ptr<ng::Node>> node_inps, ng::Strides ng_strides,
       ng::Strides ng_dilations, ng::CoordinateDiff ng_padding_below,
       ng::CoordinateDiff ng_padding_above, ng::Strides ng_data_dilations) {
-    auto ng_node = ng::builder::QuantizedConvolutionBiasBuilder(
+      return ng::builder::QuantizedConvolutionBiasBuilder(
         node_inps[0], node_inps[1], node_inps[2], ng_strides, ng_dilations,
         ng_padding_below, ng_padding_above, ng_data_dilations, node_inps[3],
         node_inps[4], node_inps[5], node_inps[6], node_inps[7], node_inps[8],
         IsRelu);
-    Builder::SetTracingInfo(op_name, ng_node);
-    return ng_node;
   };
   return TranslateQuantizedConv(op, ng_op_map, create_quantized_conv_node);
 }
@@ -3556,13 +3554,11 @@ static Status TranslateQuantizedConv2DWithBiasSumAndReluAndRequantizeOp(
       std::vector<std::shared_ptr<ng::Node>> node_inps, ng::Strides ng_strides,
       ng::Strides ng_dilations, ng::CoordinateDiff ng_padding_below,
       ng::CoordinateDiff ng_padding_above, ng::Strides ng_data_dilations) {
-    auto ng_node = ng::builder::QuantizedConvolutionBiasAddBuilder(
+    return ng::builder::QuantizedConvolutionBiasAddBuilder(
         node_inps[0], node_inps[1], node_inps[2], node_inps[9], ng_strides,
         ng_dilations, ng_padding_below, ng_padding_above, ng_data_dilations,
         node_inps[3], node_inps[4], node_inps[5], node_inps[6], node_inps[7],
         node_inps[8], node_inps[10], node_inps[11], true);
-    Builder::SetTracingInfo(op_name, ng_node);
-    return ng_node;
   };
   return TranslateQuantizedConv(op, ng_op_map, create_quantized_conv_node);
 }
@@ -3575,13 +3571,11 @@ static Status TranslateQuantizedConv2DWithBiasSignedSumAndReluAndRequantizeOp(
       std::vector<std::shared_ptr<ng::Node>> node_inps, ng::Strides ng_strides,
       ng::Strides ng_dilations, ng::CoordinateDiff ng_padding_below,
       ng::CoordinateDiff ng_padding_above, ng::Strides ng_data_dilations) {
-    auto ng_node = ng::builder::QuantizedConvolutionBiasSignedAddBuilder(
+    return ng::builder::QuantizedConvolutionBiasSignedAddBuilder(
         node_inps[0], node_inps[1], node_inps[2], node_inps[9], ng_strides,
         ng_dilations, ng_padding_below, ng_padding_above, ng_data_dilations,
         node_inps[3], node_inps[4], node_inps[5], node_inps[6], node_inps[7],
         node_inps[8], node_inps[10], node_inps[11], true);
-    Builder::SetTracingInfo(op_name, ng_node);
-    return ng_node;
   };
   return TranslateQuantizedConv(op, ng_op_map, create_quantized_conv_node);
 }
@@ -3610,10 +3604,9 @@ static Status TranslateQuantizeV2Op(const Node* op,
   ng::op::Quantize::RoundMode ng_round_mode =
       ng::op::Quantize::RoundMode::ROUND_NEAREST_TOWARD_EVEN;
 
-  auto ng_node = ng::builder::QuantizeBuilder(ng_input, ng_min, ng_max, ng_et,
-                                              ng::AxisSet(), ng_round_mode);
-  Builder::SetTracingInfo(op->name(), ng_node);
-  SaveNgOp(ng_op_map, op->name(), ng_node);
+  SaveNgOp(ng_op_map, op->name(),
+           ng::builder::QuantizeBuilder(ng_input, ng_min, ng_max, ng_et,
+                                        ng::AxisSet(), ng_round_mode));
   SaveNgOp(ng_op_map, op->name(), ng_min);
   SaveNgOp(ng_op_map, op->name(), ng_max);
 
@@ -3627,10 +3620,9 @@ static Status TranslateDequantizeOp(const Node* op,
   TF_RETURN_IF_ERROR(GetInputNodes(ng_op_map, op, &ng_input, &ng_min, &ng_max));
 
   // TF only dequantizes to fp32
-  auto ng_node = ng::builder::DequantizeBuilder(
-      ng_input, ng_min, ng_max, ng::element::f32, ng::AxisSet());
-  Builder::SetTracingInfo(op->name(), ng_node);
-  SaveNgOp(ng_op_map, op->name(), ng_node);
+  SaveNgOp(ng_op_map, op->name(),
+           ng::builder::DequantizeBuilder(ng_input, ng_min, ng_max,
+                                          ng::element::f32, ng::AxisSet()));
   return Status::OK();
 }
 
