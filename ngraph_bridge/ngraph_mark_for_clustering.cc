@@ -82,6 +82,21 @@ static Status TypeConstraintOk(Node* node,
 
     DataType dt;
 
+    cout << "TypeConstraintOk for " << node->name() << " of type " << node->type_string() << "\n";
+     if (GetNodeAttr(node->attrs(), type_attr_name, &dt) != Status::OK()) {
+         cout << "Failed to get attribute\n";
+     }
+
+    if (std::find(allowed_types.begin(), allowed_types.end(), dt) == allowed_types.end()) {
+        cout << "Type constraint failed: \n";
+        for (auto i : allowed_types) {
+            cout << "allowed_type: " << i << ", ";
+        }
+        cout << "\n";
+        cout << "Requested TF datatype: " << dt << "\n";
+    }
+
+
     if (GetNodeAttr(node->attrs(), type_attr_name, &dt) != Status::OK() ||
         std::find(allowed_types.begin(), allowed_types.end(), dt) ==
             allowed_types.end()) {
