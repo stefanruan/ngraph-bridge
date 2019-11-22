@@ -154,7 +154,7 @@ NGraphExecutor::NGraphExecutor(int instance_id, int cluster_id, int graph_id,
 //---------------------------------------------------------------------------
 NGraphExecutor::~NGraphExecutor() {
   auto backend = BackendManager::GetBackend(m_op_backend_name);
-
+  std::cout <<"Is it stuck here: 157"<<std::endl;
   auto destroy_ng_item_callback = std::bind(
       &NGraphExecutor::DestroyCallback, this, std::placeholders::_1, backend);
   m_ng_data_cache.RemoveAll(destroy_ng_item_callback);
@@ -209,7 +209,7 @@ Status NGraphExecutor::GetExecutableFunctionAndTensors(
   string signature;
   signature = signature_ss.str();
 
-  NGRAPH_VLOG(5) << "Computed signature: " << signature;
+  NGRAPH_VLOG(5) << "Parallel Executor Computed signature: " << signature;
 
   NGRAPH_VLOG(4) << "GetNgExecutable: Got backend of type: "
                  << m_op_backend_name;
@@ -234,7 +234,7 @@ Status NGraphExecutor::GetExecutableFunctionAndTensors(
   auto status_ng_item_pair =
       m_ng_data_cache.LookUpOrCreate(signature, create_ng_items_callback,
                                      destroy_ng_items_callback, cache_hit);
-
+  std::cout << "From executor Cache Hit:"<<cache_hit<<endl;
   if (status_ng_item_pair.first == Status::OK()) {
     std::tie(ng_exec, serialized_ng_func, pts) = status_ng_item_pair.second;
   }
@@ -276,7 +276,7 @@ NGraphExecutor::CreateCallback(const std::string signature,
     }
     serialized_ng_func = itr->second;
   }
-
+  std::cout<< "Line no. exe 279:"<<"*********************************"<<std::endl;
   // Serialize to nGraph if needed
   if (std::getenv("NGRAPH_ENABLE_SERIALIZE") != nullptr) {
     std::string file_name = "tf_function_" + m_node_name + ".json";
@@ -297,12 +297,14 @@ NGraphExecutor::CreateCallback(const std::string signature,
     }
 #endif
   }
+  std::cout<< "Line no. exe 300:"<<"*********************************"<<std::endl;
   // Get NgExecutable
   auto status_ng_exec_pair =
       GetNgExecutable(signature, ng_function, op_backend);
   // Create PipelinedTensorStore
   if (status_ng_exec_pair.first == Status::OK()) {
     ng_exec = status_ng_exec_pair.second;
+    std::cout<< "Line no. exe 307:"<<"*********************************"<<std::endl;
     auto status_ng_pts_pair = InitializeIOTensorPipeline(ng_exec);
     pts = status_ng_pts_pair.second;
     return std::make_pair(status_ng_pts_pair.first,
@@ -373,6 +375,8 @@ void NGraphExecutor::DestroyCallback(
                shared_ptr<PipelinedTensorsStore>>
         evicted_ng_item,
     ng::runtime::Backend*& op_backend) {
+
+  std::cout <<"Reached Destry callback: 376"<<std::endl;
   std::shared_ptr<ngraph::runtime::Executable> evicted_ng_exec;
   std::tie(evicted_ng_exec, std::ignore, std::ignore) = evicted_ng_item;
   // Call delete function here for the erased func

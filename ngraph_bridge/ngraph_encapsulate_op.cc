@@ -429,18 +429,20 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
   // Get ngraph executable and inputs information and Pipelined tensors
   bool cache_hit;
   std::string serialized_ng_function;
+  std::cout<< "Line no. 432:"<<"*********************************"<<std::endl;
   OP_REQUIRES_OK(ctx, m_parallel_executor->GetExecutableFunctionAndTensors(
                           tf_input_tensors, ng_exec, serialized_ng_function,
                           pipelined_tensor_store, cache_hit));
   io_tensors = pipelined_tensor_store->get_tensors();
   OP_REQUIRES(ctx, !(std::get<0>(io_tensors) < 0),
               errors::Internal("No free tensor available"));
+  std::cout << "CACHE HIT: " << PrintBool(cache_hit) << endl;
   NGRAPH_VLOG(2) << "CACHE HIT: " << PrintBool(cache_hit) << endl;
   NGRAPH_VLOG(2) << " Step_ID: " << step_id;
   NGRAPH_VLOG(2)
       << "NGraphEncapsulateOp::Compute got ngraph executable for cluster id: "
       << m_parallel_executor->GetNgraphClusterId();
-
+std::cout<< "Line no. 446:"<<"*********************************"<<std::endl;
   event_get_ng_item.Stop();
   ngraph::Event::write_trace(event_get_ng_item);
 
@@ -455,7 +457,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
     Status s = ctx->resource_manager()->Lookup(
         NGraphPrefetchSharedResouce::CONTAINER_NAME,
         NGraphPrefetchSharedResouce::RESOURCE_NAME, &shared_data);
-
+std::cout<< "Line no. 460:"<<"*********************************"<<std::endl;
     if (!s.ok()) {
       // We are using this for the first time i.e., we need to do the following
       // 1. Create the shared data object
@@ -467,7 +469,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
           name(), m_parallel_executor->GetOpBackendName(),
           m_parallel_executor->GetGraphId(),
           m_parallel_executor->GetNgraphClusterId());
-
+std::cout<< "Line no. 472:"<<"*********************************"<<std::endl;
       // Get the set of IO tensors for the next iteration
       std::tuple<int, PipelinedTensorVector, PipelinedTensorVector>
           io_tensors_next_iter;
@@ -478,7 +480,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
           get<2>(io_tensors_next_iter)};
 
       shared_data->AddNextIoTensorsForDeviceTransfer(next_io_tensor_bundle);
-
+std::cout<< "Line no. 483:"<<"*********************************"<<std::endl;
       ctx->SetStatus(ctx->resource_manager()->Create(
           NGraphPrefetchSharedResouce::CONTAINER_NAME,
           NGraphPrefetchSharedResouce::RESOURCE_NAME, shared_data));
@@ -490,6 +492,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
     } else {
       int prefetch_buffer_depth = shared_data->GetBufferDepth();
       int skip_count = shared_data->GetSkipCount();
+      std::cout<< "Line no. 495:"<<"*********************************"<<std::endl;
       NGRAPH_VLOG(2) << "[PREFETCH] COMPUTE: DEPTH: " << prefetch_buffer_depth
                      << " skip count; " << skip_count;
       if (skip_count >= prefetch_buffer_depth) {
@@ -515,7 +518,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
       shared_data->IncrSkipCount();
     }
   }
-
+std::cout<< "Line no. 521:"<<"*********************************"<<std::endl;
   // Allocate the input/
   ngraph::Event event_copy_input_tensor("Copy Input Tensor", "", "");
 
@@ -526,6 +529,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
                               tf_input_tensors[i].dtype(), &ng_element_type));
 
       void* current_src_ptr = (void*)DMAHelper::base(&tf_input_tensors[i]);
+      std::cout<< "Line no. 531:"<<"*********************************"<<std::endl;
       try {
         io_tensor_bundle.Inputs[i]->write(
             current_src_ptr, io_tensor_bundle.Inputs[i]->get_element_count() *
@@ -544,15 +548,17 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
   }
   event_copy_input_tensor.Stop();
   ngraph::Event::write_trace(event_copy_input_tensor);
-
+std::cout<< "Line no. 551:"<<"*********************************"<<std::endl;
   // And execute
   ngraph::Event event_execute_graph("Execute Graph", "", "");
 
   BackendManager::LockBackend(m_parallel_executor->GetOpBackendName());
+  std::cout<< "Line no. 556:"<<"*********************************"<<std::endl;
   NGRAPH_VLOG(4) << "NGraphEncapsulateOp::Compute call starting for cluster "
                  << m_parallel_executor->GetNgraphClusterId();
   try {
     ng_exec->call(get<2>(io_tensors), get<1>(io_tensors));
+    std::cout<< "Line no. 560:"<<"*********************************"<<std::endl;
   } catch (const std::exception& exp) {
     BackendManager::UnlockBackend(m_parallel_executor->GetOpBackendName());
     Status st =
@@ -575,7 +581,8 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
                          st.error_message()));
     OP_REQUIRES(ctx, false, errors::Internal(status_string));
   }
-
+  BackendManager::UnlockBackend(m_parallel_executor->GetOpBackendName());
+  std::cout<< "Line no. 585:"<<"*********************************"<<std::endl;
   event_execute_graph.Stop();
   ngraph::Event::write_trace(event_execute_graph);
 

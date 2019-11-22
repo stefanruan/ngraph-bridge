@@ -73,13 +73,13 @@ TEST(ParallelExecutor, Construction) {
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_launchop.pbtxt", input_graph));
 
   // Next test with a backend after creating
-  tf::ngraph_bridge::BackendManager::CreateBackend("INTERPRETER");
+  tf::ngraph_bridge::BackendManager::CreateBackend("CPU");
   ASSERT_NO_THROW(executor = unique_ptr<NGraphExecutor>(new NGraphExecutor(
-                      100, 500, 600, input_graph, "INTERPRETER", 16)));
+                      100, 500, 600, input_graph, "CPU", 16)));
 
   // Now that the object has been cobstructed, test various internal parts
   // TODO: Create a Test Class and mark that as a friend of the Executor class
-  ASSERT_EQ(executor->GetOpBackendName(), "INTERPRETER");
+  ASSERT_EQ(executor->GetOpBackendName(), "CPU");
   ASSERT_TRUE(executor->IsTensorPipeliningSupported());
 }
 
@@ -92,8 +92,8 @@ TEST(ParallelExecutor, CompilerTest) {
   // TF graph transformation.
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_launchop.pbtxt", input_graph));
 
-  tf::ngraph_bridge::BackendManager::CreateBackend("INTERPRETER");
-  NGraphExecutor executor(100, 500, 600, input_graph, "INTERPRETER", 10);
+  tf::ngraph_bridge::BackendManager::CreateBackend("CPU");
+  NGraphExecutor executor(100, 500, 600, input_graph, "CPU", 10);
 
   // Create the inputs for this graph
   Tensor x(DT_FLOAT, TensorShape({2, 3}));
@@ -131,8 +131,8 @@ TEST(ParallelExecutor, ExecuteOnSingleThread) {
   // TF graph transformation.
   unique_ptr<tf::Graph> input_graph;
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_launchop.pbtxt", input_graph));
-  tf::ngraph_bridge::BackendManager::CreateBackend("INTERPRETER");
-  NGraphExecutor executor(100, 500, 600, input_graph, "INTERPRETER", 12);
+  tf::ngraph_bridge::BackendManager::CreateBackend("CPU");
+  NGraphExecutor executor(100, 500, 600, input_graph, "CPU", 12);
 
   // Create the inputs for this graph
   Tensor x(DT_FLOAT, TensorShape({2, 3}));
@@ -208,7 +208,7 @@ TEST(ParallelExecutor, ExecuteOnSingleThread8Bit) {
   unique_ptr<tf::Graph> input_graph;
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_int8_launchop.pbtxt", input_graph));
 
-  string backend_name = "INTERPRETER";
+  string backend_name = "CPU";
   if (std::getenv("NGRAPH_TF_BACKEND") != nullptr) {
     backend_name = std::getenv("NGRAPH_TF_BACKEND");
   }
@@ -290,7 +290,7 @@ TEST(ParallelExecutor, ExecuteOnMultipleThreads8Bit) {
   unique_ptr<tf::Graph> input_graph;
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_int8_launchop.pbtxt", input_graph));
 
-  string backend_name = "INTERPRETER";
+  string backend_name = "CPU";
   if (std::getenv("NGRAPH_TF_BACKEND") != nullptr) {
     backend_name = std::getenv("NGRAPH_TF_BACKEND");
   }
@@ -382,8 +382,8 @@ TEST(ParallelExecutor, ExecuteOnMultipleThreads) {
   // TF graph transformation.
   unique_ptr<tf::Graph> input_graph;
   ASSERT_OK(LoadGraphFromPbTxt("test_axpy_launchop.pbtxt", input_graph));
-  tf::ngraph_bridge::BackendManager::CreateBackend("INTERPRETER");
-  NGraphExecutor executor(100, 500, 600, input_graph, "INTERPRETER", 16);
+  tf::ngraph_bridge::BackendManager::CreateBackend("CPU");
+  NGraphExecutor executor(100, 500, 600, input_graph, "CPU", 16);
 
   // Create the inputs for this graph
   Tensor x(DT_FLOAT, TensorShape({2, 3}));
@@ -517,7 +517,7 @@ TEST(ParallelExecutor, E2E8Bit) {
 
   thread0.join();
   thread1.join();
-  thread2.join();
+  //thread2.join();
 
   session->Close();
 }

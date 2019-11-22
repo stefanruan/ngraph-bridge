@@ -85,6 +85,7 @@ NgraphDataCache<KeyType, ValueType>::NgraphDataCache(int depth)
 
 template <typename KeyType, typename ValueType>
 NgraphDataCache<KeyType, ValueType>::~NgraphDataCache() {
+  std::cout <<"Or no response from here"<<std::endl;
   m_ng_items_map.clear();
   m_lru.clear();
 }
@@ -92,6 +93,7 @@ NgraphDataCache<KeyType, ValueType>::~NgraphDataCache() {
 template <typename KeyType, typename ValueType>
 Status NgraphDataCache<KeyType, ValueType>::RemoveItem(
     KeyType key, std::function<void(ValueType)> callback_destroy_item) {
+      std::cout <<"Is it coming here: 95"<<std::endl;
   absl::MutexLock lock(&m_mutex);
   if (m_ng_items_map.find(key) != m_ng_items_map.end()) {
     try {
@@ -112,12 +114,14 @@ Status NgraphDataCache<KeyType, ValueType>::RemoveItem(
 
 template <typename KeyType, typename ValueType>
 Status NgraphDataCache<KeyType, ValueType>::RemoveItem(KeyType key) {
+  std::cout <<"Or here: 116"<<std::endl;
   return RemoveItem(key, [](ValueType) {});
 }
 
 template <typename KeyType, typename ValueType>
 Status NgraphDataCache<KeyType, ValueType>::RemoveAll(
     std::function<void(ValueType)> callback_destroy_item) {
+      std::cout <<"Or here: 123"<<std::endl;
   absl::MutexLock lock(&m_mutex);
   for (auto it = m_ng_items_map.begin(); it != m_ng_items_map.end(); it++) {
     try {
@@ -144,14 +148,18 @@ NgraphDataCache<KeyType, ValueType>::LookUpOrCreate(
     std::function<void(ValueType)> callback_destroy_item,
     bool& found_in_cache) {
   // look up in the cache
+  //std::cout <<"Taking lock before lookup"<<std::endl;
   {
+    
     absl::MutexLock lock(&m_mutex);
+    //std::cout <<"Lock aquired"<<std::endl;
     auto it = m_ng_items_map.find(key);
     found_in_cache = (it != m_ng_items_map.end());
     if (found_in_cache) {
       return std::make_pair(Status::OK(), m_ng_items_map.at(key));
     }
   }
+  //std::cout <<"Lock released"<<std::endl;
   // Item not found in cache, create item
   ValueType item;
   pair<Status, ValueType> status_item_pair;
@@ -167,8 +175,10 @@ NgraphDataCache<KeyType, ValueType>::LookUpOrCreate(
   if (status_item_pair.first == Status::OK()) {
     item = status_item_pair.second;
     // lock begins
+    //std::cout <<"Taking lock before inserting item item in cache"<<std::endl;
     {
       absl::MutexLock lock(&m_mutex);
+      //std::cout <<"Lock aquired"<<std::endl;
       // Remove item if cache is full
       if (m_ng_items_map.size() == m_depth) {
         auto key_to_evict = m_lru.back();
@@ -187,13 +197,14 @@ NgraphDataCache<KeyType, ValueType>::LookUpOrCreate(
       auto it = m_ng_items_map.emplace(key, item);
       if (it.second == true) {
         m_lru.push_front(key);
-      } else {
+      } else {        
         auto key_itr = find(m_lru.begin(), m_lru.end(), key);
         m_lru.erase(key_itr);
         m_lru.push_front(key);
+        //found_in_cache = true;
       }
     }  // lock ends here.
-
+    //std::cout <<"Lock released"<<std::endl;
     if (m_ng_items_map.size() != m_lru.size()) {
       return std::make_pair(
           errors::Internal("Error occured: size of m_ng_items_map is not same "

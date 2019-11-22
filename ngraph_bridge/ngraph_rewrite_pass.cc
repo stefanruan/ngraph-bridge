@@ -257,11 +257,12 @@ class NGraphEncapsulationPass : public NGraphRewritePass {
       DumpGraphs(options, idx, "declustered",
                  "Graph with Trivial Clusters De-Assigned");
     }
-
+    std::cout << "Before encapsulate: " << std::endl;
     // 4. Encapsulate clusters then, if requested, dump the graphs.
     FunctionDefLibrary* fdeflib_new = new FunctionDefLibrary();
     TF_RETURN_IF_ERROR(EncapsulateClusters(options.graph->get(), idx,
                                            fdeflib_new, config_map, {0, {}}));
+    std::cout << "Before encapsulate: " << std::endl;
     // TODO: not using fdeflib_new in this path. Only grappler path uses it
     delete (fdeflib_new);
     if (DumpEncapsulatedGraphs()) {
