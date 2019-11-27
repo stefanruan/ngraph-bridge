@@ -601,11 +601,11 @@ Status NGraphEncapsulateImpl::GetPersistentTFOutputTensor(
     std::vector<tensorflow::PersistentTensor>& tf_output_tensors) {
   auto itr = m_out_persistents.find(exec);
   if (itr == m_out_persistents.end()) {
-    // TODO: populate
+    return errors::Internal(
+        "Expected persistent tensor to be present in cache");
   } else {
     tf_output_tensors = itr->second;
   }
-
   return Status::OK();
 }
 
