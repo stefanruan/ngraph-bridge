@@ -318,6 +318,8 @@ Status NGraphEncapsulateImpl::AllocateNGInputTensors(
     std::shared_ptr<ng::runtime::Tensor> last_ng_tensor =
         input_caches[i].second;
     void* current_src_ptr = (void*)DMAHelper::base(&tf_input_tensors[i]);
+    cout << i << " current_src_ptr: " << current_src_ptr
+         << " last_src_ptr: " << last_src_ptr << "\n";
     std::shared_ptr<ng::runtime::Tensor> current_ng_tensor = GetCurrentNgTensor(
         current_src_ptr, last_src_ptr, last_ng_tensor, false, ng_exec,
         op_backend, ng_element_type, ng_shape,
@@ -405,6 +407,9 @@ Status NGraphEncapsulateImpl::AllocateNGOutputTensors(
     }
     NGRAPH_VLOG(4) << "NGraphEncapsulateImpl:: Output from non Variable Node";
 #endif
+
+    cout << i << " current_dst_ptr: " << current_dst_ptr
+         << " last_dst_ptr: " << last_dst_ptr << "\n";
 
     current_ng_tensor = GetCurrentNgTensor(
         current_dst_ptr, last_dst_ptr, last_ng_tensor, true, ng_exec,
@@ -589,6 +594,37 @@ void NGraphEncapsulateImpl::DumpNgFunction(
     const string& file_name,
     std::shared_ptr<ngraph::runtime::Executable> ng_exec) {
   StringToFile(file_name, m_serialized_ng_function_map[ng_exec]);
+}
+
+Status NGraphEncapsulateImpl::GetPersistentTFOutputTensor(
+    std::shared_ptr<ngraph::runtime::Executable> exec,
+    std::vector<tensorflow::PersistentTensor>& tf_output_tensors) {
+  auto itr = m_out_persistents.find(exec);
+  if (itr == m_out_persistents.end()) {
+    // TODO: populate
+  } else {
+    tf_output_tensors = itr->second;
+  }
+
+  return Status::OK();
+}
+
+bool NGraphEncapsulateImpl::PersistentOutputsExist(
+    std::shared_ptr<ngraph::runtime::Executable> exec) {
+  return m_out_persistents.find(exec) != m_out_persistents.end();
+}
+
+Status NGraphEncapsulateImpl::RegisterOutputPersistentTensors(
+    std::shared_ptr<ngraph::runtime::Executable> exec,
+    std::vector<tensorflow::PersistentTensor> persistent_tensors) {
+  auto itr = m_out_persistents.find(exec);
+  if (itr != m_out_persistents.end()) {
+    return errors::Internal(
+        "Found an entry already exists in the cache for persistent tensors");
+  }
+  m_out_persistents.emplace(exec, persistent_tensors);
+  cout << "m_out_persistents: " << m_out_persistents.size() << "\n";
+  return Status::OK();
 }
 
 }  // namespace ngraph_bridge

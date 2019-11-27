@@ -121,6 +121,7 @@ PipelinedTensorsStore::PipelinedTensorsStore(PipelinedTensorMatrix in,
 tuple<int, PipelinedTensorVector, PipelinedTensorVector>
 PipelinedTensorsStore::get_tensors() {
   int i = idx_lib->get_index();
+  cout << "get_tensors in PTS got us: " << i << "\n";
   return make_tuple(i, (i < 0 ? PipelinedTensorVector{} : get_group(true, i)),
                     (i < 0 ? PipelinedTensorVector{} : get_group(false, i)));
 }

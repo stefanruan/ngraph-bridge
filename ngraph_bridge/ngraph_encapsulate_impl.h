@@ -174,6 +174,8 @@ class NGraphEncapsulateImpl {
     m_serialized_ng_function_map.clear();
   }
 
+  void ClearNgExecPersistentOutputCache() { m_out_persistents.clear(); }
+
   NGraphFreshnessTracker* GetNgraphFreshnessTracker() {
     return m_freshness_tracker;
   }
@@ -208,6 +210,16 @@ class NGraphEncapsulateImpl {
 
   // TF Graph for the cluster
   Graph m_graph;
+
+  Status GetPersistentTFOutputTensor(
+      std::shared_ptr<ngraph::runtime::Executable>,
+      std::vector<tensorflow::PersistentTensor>&);
+
+  bool PersistentOutputsExist(std::shared_ptr<ngraph::runtime::Executable>);
+
+  Status RegisterOutputPersistentTensors(
+      std::shared_ptr<ngraph::runtime::Executable>,
+      std::vector<tensorflow::PersistentTensor>);
 
  private:
   int number_of_copies = 0;
@@ -249,6 +261,14 @@ class NGraphEncapsulateImpl {
       m_executable_pipelined_tensors_map;
 
   int m_depth{2};  // TODO make this settable
+
+  // each executable (which comes from a new shape) corresponds to a vector of
+  // output tensors
+  // TODO: give better name
+  // TODO: Should the vector store PersistentTensor or PersistentTensor* ?
+  std::unordered_map<std::shared_ptr<ngraph::runtime::Executable>,
+                     std::vector<tensorflow::PersistentTensor>>
+      m_out_persistents;
 };
 
 }  // namespace ngraph_bridge

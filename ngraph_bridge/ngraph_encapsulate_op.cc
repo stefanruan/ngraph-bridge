@@ -264,6 +264,7 @@ NGraphEncapsulateOp::~NGraphEncapsulateOp() {
   ng_encap_impl.ClearNgExecMap();
   ng_encap_impl.ClearNgExecPipelinedTensorMap();
   ng_encap_impl.ClearNgExecSerializedFunctionCache();
+  ng_encap_impl.ClearNgExecPersistentOutputCache();
 
   // Release the backend
   NGRAPH_VLOG(2) << "~NGraphEncapsulateOp():: ReleaseBackend";
@@ -384,6 +385,29 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
   int ng_output_tensor_size_in_bytes = 0;
   std::vector<Tensor*> tf_output_tensors;
 
+  // TODO: replace this with a env var
+  bool USE_PERSISTENT = true;
+
+  /*if (USE_PERSISTENT) {
+    std::vector<tensorflow::PersistentTensor> tf_persistent_output_tensors;
+    OP_REQUIRES_OK(ctx, ng_encap_impl.GetPersistentTFOutputTensor(ng_exec,
+  tf_persistent_output_tensors));
+    // TODO convert tf_persistent_output_tensors to tf_output_tensors
+  }*/
+
+  // If we are using persistent output tensors and we have already got them in
+  // the cache,
+  // extract and keep them ready for the loop that follows
+  std::vector<tensorflow::PersistentTensor> cached_persistent_output_tensors;
+  bool present_in_cache = false;
+  if (USE_PERSISTENT) {
+    present_in_cache = ng_encap_impl.PersistentOutputsExist(ng_exec);
+    if (present_in_cache) {
+      ng_encap_impl.GetPersistentTFOutputTensor(
+          ng_exec, cached_persistent_output_tensors);
+    }
+  }
+
   for (auto i = 0; i < ng_exec->get_results().size(); i++) {
     auto ng_element = ng_exec->get_results()[i];
     auto ng_shape = ng_element->get_shape();
@@ -396,7 +420,24 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
     }
     TensorShape tf_shape(dims);
     Tensor* output_tensor = nullptr;
-    OP_REQUIRES_OK(ctx, ctx->allocate_output(i, tf_shape, &output_tensor));
+    if (USE_PERSISTENT) {
+      if (present_in_cache) {
+        // get Tensor from PersistentTensor
+        output_tensor = cached_persistent_output_tensors[i].AccessTensor(ctx);
+      } else {
+        // create a persistent tensor
+        PersistentTensor out_persistent;
+        OP_REQUIRES_OK(ctx, ctx->allocate_persistent(
+                                ctx->expected_output_dtype(i), tf_shape,
+                                &out_persistent, &output_tensor));
+        cout << "ctx->expected_output_dtype(i): "
+             << ctx->expected_output_dtype(i) << "\n";
+        cout << "Creation time: " << output_tensor->dtype() << "\n";
+        cached_persistent_output_tensors.push_back(out_persistent);
+      }
+    } else {
+      OP_REQUIRES_OK(ctx, ctx->allocate_output(i, tf_shape, &output_tensor));
+    }
     tf_output_tensors.push_back(output_tensor);
 
     // Make sure the nGraph-inferred element type agrees with what TensorFlow
@@ -411,10 +452,21 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
                          "the element type expected by TensorFlow"));
   }
 
+  if (USE_PERSISTENT) {
+    if (!present_in_cache) {
+      OP_REQUIRES_OK(ctx, ng_encap_impl.RegisterOutputPersistentTensors(
+                              ng_exec, cached_persistent_output_tensors));
+    }
+  }
+
   OP_REQUIRES_OK(ctx, ng_encap_impl.AllocateNGOutputTensors(
                           tf_output_tensors, ng_exec, out_group_from_pipeline,
                           op_backend, ng_outputs));
   auto output_caches = ng_encap_impl.GetNgExecOutputCacheMap(ng_exec);
+
+  for (auto i : tf_output_tensors) {
+    cout << "After allocateoutput call: " << i->dtype() << "\n";
+  }
 
   event_alloc_output.Stop();
   NGRAPH_VLOG(4)
@@ -515,8 +567,19 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
 
   int time_create_or_lookup_tensors = create_or_lookup_tensors.ElapsedInMS();
 
+  for (auto i : tf_output_tensors) {
+    cout << "before event_execute_function: " << i->dtype()
+         << "\n";  // is 1 or float here
+  }
+
   // Execute the nGraph function.
   ngraph::Event event_execute_function("Execute nGraph", name(), "");
+
+  for (auto i : tf_output_tensors) {
+    cout << "after event_execute_function: " << i->dtype()
+         << "\n";  // is 0 or invalid here
+  }
+
   Timer execute_function;
   {
     BackendManager::LockBackend(ng_encap_impl.GetOpBackend());
@@ -696,6 +759,16 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
                   errors::Internal(
                       "Caught exception while returning pipelined tensors: ",
                       exp.what(), "\n"));
+    }
+  }
+
+  if (USE_PERSISTENT) {
+    for (int out_idx = 0; out_idx < ng_exec->get_results().size(); out_idx++) {
+      // TODO uncomment
+      cout << "----\nSetting output " << out_idx << " --- "
+           << tf_output_tensors[out_idx]->dtype() << " "
+           << tf_output_tensors[out_idx]->NumElements() << "----\n";
+      ctx->set_output(out_idx, *tf_output_tensors[out_idx]);
     }
   }
 
