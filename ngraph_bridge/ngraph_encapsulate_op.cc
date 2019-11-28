@@ -572,8 +572,8 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
          << "\n";  // is 1 or float here
   }
   for (auto i : cached_persistent_output_tensors) {
-    cout << "PT: before event_execute_function: " << i.AccessTensor(ctx)->dtype()
-         << "\n";
+    cout << "PT: before event_execute_function: "
+         << i.AccessTensor(ctx)->dtype() << "\n";
   }
 
   // Execute the nGraph function.
@@ -587,7 +587,6 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
     cout << "PT: after event_execute_function: " << i.AccessTensor(ctx)->dtype()
          << "\n";
   }
-  
 
   Timer execute_function;
   {
@@ -777,8 +776,10 @@ void NGraphEncapsulateOp::Compute(OpKernelContext* ctx) {
       cout << "----\nSetting output " << out_idx << " --- "
            << tf_output_tensors[out_idx]->dtype() << " "
            << tf_output_tensors[out_idx]->NumElements() << "----\n";
-      //ctx->set_output(out_idx, *tf_output_tensors[out_idx]);
-      ctx->set_output(out_idx, *(cached_persistent_output_tensors[out_idx].AccessTensor(ctx)));
+      // ctx->set_output(out_idx, *tf_output_tensors[out_idx]);
+      ctx->set_output(
+          out_idx,
+          *(cached_persistent_output_tensors[out_idx].AccessTensor(ctx)));
     }
   }
 

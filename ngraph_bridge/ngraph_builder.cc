@@ -3751,10 +3751,11 @@ static Status TranslateResizeBilinearOp(
   attrs.axes = {1, 2};
   // TODO: pads_begin and pads_end are not populated. Check correctness
 
-  auto size_int64 =
-      ConstructNgNode<ng::op::Convert>(op->name(), size, ngraph::element::i64);
+  // auto size_int64 =
+  //    ConstructNgNode<ng::op::Convert>(op->name(), size,
+  //    ngraph::element::i64);
   SaveNgOp(ng_op_map, op->name(), ConstructNgNode<ng::op::Interpolate>(
-                                      op->name(), images, size_int64, attrs));
+                                      op->name(), images, size, attrs));
 
   return Status::OK();
 }
