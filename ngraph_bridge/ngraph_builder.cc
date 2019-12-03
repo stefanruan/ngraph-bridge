@@ -4496,9 +4496,8 @@ static Status TranslateStridedSliceOp(
                             size_t dim, bool begin_mask, bool end_mask,
                             bool shrink_mask) {
     // if begin mask is present, depending on stride sign use 0 (std::begin)
-    // or
-    // dim-1 (std::rbegin)
-    // clamped_end_idx could line in [-1, d]
+    // or dim-1 (std::rbegin)
+    // clamped_end_idx could lie in [-1, d]
     int tf_ignore_begin_if_needed =
         begin_mask ? (tf_stride > 0 ? 0 : dim - 1) : tf_begin_idx;
     // if end mask is present, depending on stride sign use -1 (std::rend) or
@@ -4508,6 +4507,7 @@ static Status TranslateStridedSliceOp(
     // take care to convert dim from sixze_t to int
     int tf_ignore_end_if_needed =
         end_mask ? (tf_stride > 0 ? dim : (-((int)dim + 1))) : tf_end_idx;
+    cout << "tf_ignore_end_if_needed: " << tf_ignore_end_if_needed << "\n";
     // using size_t for clamped_begin_idx because: clamped_begin_idx is
     // inclusive, so it must lie in [0, dim-1]
     size_t clamped_begin_idx = clamper(tf_ignore_begin_if_needed, dim, true);
@@ -4530,9 +4530,9 @@ static Status TranslateStridedSliceOp(
         ng_begin_idx = clamped_begin_idx;
         // Type safety: clamped_begin_idx == clamped_end_idx implies,
         // clamped_end_idx!=-1 (since clamped_begin_idx cannot be -1), hence
-        // end
-        // index assignment is type safe
+        // end index assignment is type safe
         ng_end_idx = clamped_end_idx;
+        cout << "ng_end_idx set here5\n";
       } else {  // In the whole of this else: clamped_begin_idx !=
                 // clamped_end_idx, so !(a < b) iff a > b and vice versa when
                 // comparing the indexes
@@ -4545,18 +4545,16 @@ static Status TranslateStridedSliceOp(
           // we do not assign ng_end_idx = clamped_end_idx (which would not be
           // type safe due to the -1)
           ng_end_idx = clamped_begin_idx;
-          // Any assignment where ng_begin_idx = ng_end_idx = x (where 0 <= x
-          // <=
-          // d-1) would have worked for the 2 empty cases above
+          cout << "ng_end_idx set here4\n";
+          // Any assignment where ng_begin_idx = ng_end_idx = x
+          // (where 0 <= x <= d-1) would have worked for the 2 empty cases above
         }
         // Anything after this is non-empty. Anything before this has dealt
-        // with
-        // empty cases
+        // with empty cases
         else {
           // in this case either (clamped_begin_idx < clamped_end_idx &&
           // tf_stride > 0) or (clamped_begin_idx > clamped_end_idx &&
-          // tf_stride
-          // < 0)
+          // tf_stride < 0)
           // that is clamped_begin_idx < clamped_end_idx <==> tf_stride > 0.
           // hence using only 1 of the clauses is enough
           if (tf_stride > 0) {
@@ -4565,6 +4563,7 @@ static Status TranslateStridedSliceOp(
             // clamped_end_idx. clamped_begin_idx could be 0,
             // which means clamped_end_idx > 0. Hence type-safe
             ng_end_idx = clamped_end_idx;
+            cout << "ng_end_idx set here3\n";
           } else {  // clamped_begin_idx > clamped_end_idx, tf_stride < 0
 
             // clamped_begin_idx is [0, d] && clamped_begin_idx >
@@ -4573,6 +4572,7 @@ static Status TranslateStridedSliceOp(
             // Type safety: With clamped_end_idx in [-1,d-1],
             // dim - 1 - clamped_end_idx is in [0, dim]. Hence type safe
             ng_end_idx = dim - 1 - clamped_end_idx;
+            cout << "ng_end_idx set here2\n";
 
             if (clamped_begin_idx == dim) {
               clamped_begin_idx = dim - 1;
@@ -4590,8 +4590,7 @@ static Status TranslateStridedSliceOp(
             // [2:1:-1]
 
             // Type safety: Since clamped_begin_idx is [0, d-1] here, it is
-            // type
-            // safe
+            // type safe
             ng_begin_idx = dim - 1 - clamped_begin_idx;
             needs_reverse = 1;
           }
@@ -4607,6 +4606,7 @@ static Status TranslateStridedSliceOp(
       // right?
 
       ng_begin_idx = clamped_begin_idx;
+      cout << "ng_end_idx set here1\n";
       ng_end_idx = clamped_end_idx;
     }
     return std::make_tuple(ng_begin_idx, ng_end_idx, std::abs(tf_stride),
@@ -4626,6 +4626,14 @@ static Status TranslateStridedSliceOp(
                                    in_rank, " dims");
   }
 
+  NGRAPH_VLOG(3) << "TF Begin mask: " << tf_begin_mask;
+  NGRAPH_VLOG(3) << "TF End mask: " << tf_end_mask;
+  NGRAPH_VLOG(3) << "TF Shrink mask: " << tf_shrink_axis_mask;
+  NGRAPH_VLOG(3) << "TF New axis mask: " << tf_new_axis_mask;
+  NGRAPH_VLOG(3) << "TF Ellipses mask: " << tf_ellipsis_mask;
+
+
+
   // TODO/Note/Question: Are begin, end and stride vectors are of equal length
 
   // begin, end and stride vectors may not have same size as input rank, hence
@@ -4636,13 +4644,49 @@ static Status TranslateStridedSliceOp(
                                                  // vector<bool>, but it is
                                                  // optimized, so tie won't
                                                  // work. Hence using size_t
+      
+  
+  for (auto i : begin_vec) {
+    cout << "begin_vec: " << i << "\n";
+  }
+  for (auto i : end_vec) {
+    cout << "end_vec: " << i << "\n";
+  }
+
+  int ellipses_axis = -1;
+  if (tf_ellipsis_mask){
+    int temp_ellipses_axis_mask = tf_ellipsis_mask;
+    int current_bit = 0;
+    while(true) {
+      current_bit = temp_ellipses_axis_mask & 1;
+      ellipses_axis += 1;
+      temp_ellipses_axis_mask = temp_ellipses_axis_mask >> 1;
+      if (current_bit == 1){
+        // found the first non-zero bit
+        if (temp_ellipses_axis_mask != 0) {
+          return errors::InvalidArgument("Ellipses axis is ", tf_ellipsis_mask, " which is not a power of 2");
+        } else {
+          break;
+        }
+      }
+    }
+    NGRAPH_VLOG(3) << "TF Ellipses axis: " << ellipses_axis;
+
+    
+  }
+
+
+  
   for (size_t dim_idx = 0; dim_idx < begin_vec.size(); dim_idx++) {
+    cout << "dim_idx: " << dim_idx << " ng_end_vec[dim_idx]: " << ng_end_vec[dim_idx] << "\n";
     std::tie(ng_begin_vec[dim_idx], ng_end_vec[dim_idx], ng_stride_vec[dim_idx],
              ng_needs_reversal[dim_idx]) =
         tf_to_ng(begin_vec[dim_idx], end_vec[dim_idx], stride_vec[dim_idx],
                  dim_vec[dim_idx], extract_bit(tf_begin_mask, dim_idx),
                  extract_bit(tf_end_mask, dim_idx),
                  extract_bit(tf_shrink_axis_mask, dim_idx));
+    cout << "dim_idx: " << dim_idx << " ng_end_vec[dim_idx]: " << ng_end_vec[dim_idx] << "\n";
+    cout << "end_vec[dim_idx]: " << end_vec[dim_idx] << "\n";
   }
 
   // filter out negative stride dimensions
@@ -4703,8 +4747,7 @@ static Status TranslateStridedSliceOp(
 
   // TODO: assert size in this dim was 1
   // TODO: assert new_axis_mask and tf_shrink_axis_mask are not set at the
-  // same
-  // time?
+  // same time?
   // TODO: tf_new_axis_mask can exceed rank
 
   SaveNgOp(ng_op_map, op->name(), ng_strided_slice);

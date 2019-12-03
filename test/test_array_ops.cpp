@@ -1262,6 +1262,53 @@ TEST(ArrayOps, StridedSliceTest1) {
   opexecuter.RunTest();
 }
 
+TEST(ArrayOps, StridedSliceTestEllipses) {
+  vector<int> static_input_indexes = {1, 2, 3};
+
+  Scope root = Scope::NewRootScope();
+  auto in_tensor_type = DT_FLOAT;
+  std::vector<int64> input_size = {3, 4, 5, 6};
+  Tensor input_data(in_tensor_type, TensorShape(input_size));
+
+  auto num_elems_in_tensor = [](std::vector<int64> shape_vect) {
+    return std::accumulate(begin(shape_vect), end(shape_vect), 1,
+                           std::multiplies<int64>());
+  };
+  auto tot_num_elems_in_tensor = num_elems_in_tensor(input_size);
+
+  std::vector<float> data_vect(tot_num_elems_in_tensor);
+  std::iota(data_vect.begin(), data_vect.end(), 0.0f);
+  AssignInputValues<float>(input_data, data_vect);
+
+  // The middle 2 axes are set to 0, because we have ellipses
+  std::vector<int64> cstart = {0, 0, 0, 4};
+  std::vector<int64> cend = {1, 0, 0, 2};
+  std::vector<int64> cstride = {1, 0, 0, -1};
+
+  Tensor begin(DT_INT64, TensorShape({static_cast<int>(cstart.size())}));
+  AssignInputValues<int64>(begin, cstart);
+  Tensor end(DT_INT64, TensorShape({static_cast<int>(cend.size())}));
+  AssignInputValues<int64>(end, cend);
+  Tensor strides(DT_INT64, TensorShape({static_cast<int>(cstride.size())}));
+  AssignInputValues<int64>(strides, cstride);
+
+  ops::StridedSlice::Attrs attrs;
+  attrs.begin_mask_ = 0;
+  attrs.ellipsis_mask_ = 1<<1;
+  attrs.end_mask_ = 0;
+  attrs.new_axis_mask_ = 0;
+  attrs.shrink_axis_mask_ = 1;
+
+  auto R = ops::StridedSlice(root, input_data, begin, end, strides);
+  vector<DataType> output_datatypes = {in_tensor_type};
+  std::vector<Output> sess_run_fetchoutputs = {R};
+
+  OpExecuter opexecuter(root, "StridedSlice", static_input_indexes,
+                        output_datatypes, sess_run_fetchoutputs);
+
+  opexecuter.RunTest();
+}
+
 // Test op: StridedSlice
 // This test is disabled because it exhaustively tests all possibilities of
 // begin and end index
