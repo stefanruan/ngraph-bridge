@@ -28,6 +28,7 @@
 #include "ngraph/op/argmin.hpp"
 #include "ngraph/op/experimental/layers/interpolate.hpp"
 #include "ngraph/op/util/logical_reduction.hpp"
+#include "ngraph/slice_plan.hpp"
 
 #include "logging/ngraph_log.h"
 #include "ngraph_bridge/ngraph_api.h"
@@ -4413,6 +4414,9 @@ static Status TranslateStridedSliceOp(
   // TODO: implement new_axis_mask, ellipsis_mask
   shared_ptr<ng::Node> ng_input;
   TF_RETURN_IF_ERROR(GetInputNode(ng_op_map, op, 0, &ng_input));
+
+  auto sp = ng::make_slice_plan(ng::Shape({}), {0}, {2}, {1}, ng::AxisSet{}, ng::AxisSet{}, ng::AxisSet{}, ng::AxisSet{}, ng::AxisSet{});
+
 
   int tf_shrink_axis_mask;
   TF_RETURN_IF_ERROR(
