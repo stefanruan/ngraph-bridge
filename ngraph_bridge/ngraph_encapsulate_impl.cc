@@ -330,8 +330,8 @@ Status NGraphEncapsulateImpl::AllocateNGInputTensors(
         current_src_ptr, last_src_ptr, last_ng_tensor, false, ng_exec,
         op_backend, ng_element_type, ng_shape,
         m_executable_can_create_tensor ? inp_group_from_pipeline[i] : nullptr);
-    bool is_cpu = m_op_backend_name == "CPU";
-
+    bool is_cpu = false; //m_op_backend_name == "CPU";
+    cout<<"compute node name "<< GetName() <<endl;
     if (!is_cpu && current_ng_tensor->get_stale()) {
       // Fresh or stale, in case of CPU this step is never needed
       try {
@@ -349,7 +349,7 @@ Status NGraphEncapsulateImpl::AllocateNGInputTensors(
         current_ng_tensor->write(
             current_src_ptr,
             current_ng_tensor->get_element_count() * ng_element_type.size());
-
+        cout<<"copying input "<< i <<endl;
         event_copy_input_next->Stop();
         input_copy_events.push_back(std::move(event_copy_input_next));
 
@@ -440,7 +440,7 @@ std::shared_ptr<ng::runtime::Tensor> NGraphEncapsulateImpl::GetCurrentNgTensor(
   // values. ie, it will not reuse the same space if its rewritten it
   bool tf_tensor_has_changed = current_tf_ptr != last_tf_ptr;
   bool no_ng_tensor_found = last_ng_tensor == nullptr;
-  bool is_cpu = m_op_backend_name == "CPU";
+  bool is_cpu = false; //m_op_backend_name == "CPU";
 
   // We need to check last_ng_tensor != nullptr, since there are cases where
   // at the first call to the ng_exec, both current_dst_ptr (when the
@@ -470,14 +470,14 @@ std::shared_ptr<ng::runtime::Tensor> NGraphEncapsulateImpl::GetCurrentNgTensor(
   std::shared_ptr<ng::runtime::Tensor> current_ng_tensor;
   if (m_executable_can_create_tensor) {
     current_ng_tensor = tensor_from_pipeline;
+    cout<<"using pipelined tensor" <<endl;
   } else {
     if (need_new_tensor_creation) {
       if (is_cpu) {
         current_ng_tensor = op_backend->create_tensor(ng_element_type, ng_shape,
                                                       current_tf_ptr);
       } else {
-        current_ng_tensor =
-            op_backend->create_tensor(ng_element_type, ng_shape);
+        current_ng_tensor = op_backend->create_tensor(ng_element_type, ng_shape);
       }
     } else {
       current_ng_tensor = last_ng_tensor;

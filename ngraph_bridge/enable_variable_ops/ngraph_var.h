@@ -82,7 +82,7 @@ class NGraphVar : public ResourceBase {
     }
 
     ng_tf_share_buffer_ = (buffer_sharing_state_env == -1)
-                              ? (ng_backend_name_ == "CPU")
+                              ? false
                               : buffer_sharing_state_env;
 
     if (ng_tf_share_buffer_) {

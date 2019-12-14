@@ -302,11 +302,17 @@ void NGraphEncapsulateOp::CreateLegacyExecutor(OpKernelConstruction* ctx,
   bool exec_can_create_tensor =
       BackendManager::GetBackend(ng_encap_impl_.GetOpBackend())
           ->executable_can_create_tensors();
-  if (ng_encap_impl_.GetOpBackend() == "CPU") {
-    ng_encap_impl_.SetExecCanCreateTensor(false);
-  } else {
-    ng_encap_impl_.SetExecCanCreateTensor(exec_can_create_tensor);
-  }
+  // if (ng_encap_impl_.GetOpBackend() == "CPU" || ng_encap_impl_.GetOpBackend() == "NNP" ) {
+  //   ng_encap_impl_.SetExecCanCreateTensor(false);
+  // } else {
+  //   ng_encap_impl_.SetExecCanCreateTensor(exec_can_create_tensor);
+  // }
+
+  ng_encap_impl_.SetExecCanCreateTensor(exec_can_create_tensor);
+
+  cout << "Executable can " << (exec_can_create_tensor ? "" : "not")
+                 << " create tensors" <<endl;
+
   NGRAPH_VLOG(5) << "Executable can " << (exec_can_create_tensor ? "" : "not")
                  << " create tensors";
 
@@ -679,7 +685,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
     std::unique_ptr<ngraph::Event> event_copy_d2h(
         new ngraph::Event("Device to Host Copy", "", ""));
     void* dst_ptr = DMAHelper::base(tf_output_tensor);
-
+    
     ng_outputs[i]->read(
         dst_ptr, ng_outputs[i]->get_element_count() * ng_element_type.size());
     event_copy_d2h->Stop();
@@ -708,6 +714,7 @@ void NGraphEncapsulateOp::ComputeUsingParallelExecutor(OpKernelContext* ctx) {
 //---------------------------------------------------------------------------
 void NGraphEncapsulateOp::ComputeUsingLegacyExecutor(OpKernelContext* ctx) {
   std::ostringstream oss;
+  cout<<"Compute using legacy "<< name() <<endl;
   oss << "Execute: Encapsulate_" << ng_encap_impl_.GetInstanceId() << ": "
       << name();
   ngraph::Event event(oss.str(), name(), "");
@@ -1017,8 +1024,7 @@ void NGraphEncapsulateOp::ComputeUsingLegacyExecutor(OpKernelContext* ctx) {
       void* dst_ptr;
       std::tie(dst_ptr, dst_ng_tensor) = output_caches[i];
 
-      if (ng_encap_impl_.GetOpBackend() != "CPU" &&
-          NGraphCatalog::EncapOutputIndexNeedsCopy(ng_encap_impl_.GetGraphId(),
+      if (NGraphCatalog::EncapOutputIndexNeedsCopy(ng_encap_impl_.GetGraphId(),
                                                    def().name(), i)) {
         int copies = ng_encap_impl_.GetNumberOfCopies();
         ng_encap_impl_.SetNumberOfCopies(copies++);
@@ -1034,6 +1040,7 @@ void NGraphEncapsulateOp::ComputeUsingLegacyExecutor(OpKernelContext* ctx) {
             "Output_" + to_string(i) + "_" + to_string(copy_size);
         std::unique_ptr<ngraph::Event> event_copy_output_next(
             new ngraph::Event(event_name, name(), ""));
+        cout<<"read out index "<<i <<" for node "<< name() <<endl;
         dst_ng_tensor->read(dst_ptr, dst_ng_tensor->get_element_count() *
                                          ng_element_type.size());
         event_copy_output_next->Stop();

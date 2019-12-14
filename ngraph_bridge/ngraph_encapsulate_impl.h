@@ -198,7 +198,7 @@ class NGraphEncapsulateImpl {
   }
 
   void SetName(string name) { m_name = name; }
-
+  string GetName() {return m_name;}
   Status ParseNodeAttributes(
       const google::protobuf::Map<string, AttrValue>& additional_attributes,
       std::unordered_map<std::string, std::string>* additional_attribute_map);
