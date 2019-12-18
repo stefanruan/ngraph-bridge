@@ -36,7 +36,7 @@ import ngraph_bridge
 
 class TestPrefetched(NgraphTest):
 
-    def build_data_pipeline(self, input_array, map_function, batch_size):
+    def build_data_pipeline1(self, input_array, map_function, batch_size):
         dataset = (tf.data.Dataset.from_tensor_slices(
             (tf.constant(input_array)
             )).map(map_function).batch(batch_size).prefetch(1))
@@ -61,9 +61,8 @@ class TestPrefetched(NgraphTest):
         output = add2 - c2
         return output, pl1, pl2
 
-    def __run_test(self, pipeline_creator, model):
+    def __run_test(self, pipeline_creator, model, input_array):
         # build model
-        input_array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         map_multiplier = 10
         map_function = lambda x: x * map_multiplier
         batch_size = 1
@@ -88,15 +87,15 @@ class TestPrefetched(NgraphTest):
 
         return outputs
 
-    def test_prefetch1(self):
+    def helper(self, pipeline_builder, model_builder, input_data):
         # set flags
         prefetch_env = "NGRAPH_TF_USE_PREFETCH"
         env_var_map = self.store_env_variables([prefetch_env])
         self.set_env_variable(prefetch_env, "1")
 
         # Run on nGraph
-        ng_outputs = self.__run_test(self.build_data_pipeline,
-                                     self.build_model1)
+        ng_outputs = self.__run_test(pipeline_builder,
+                                     model_builder, input_data)
 
         # Reset Graph
         tf.reset_default_graph()
@@ -104,8 +103,8 @@ class TestPrefetched(NgraphTest):
         # Run on TF
         disable_tf = "NGRAPH_TF_DISABLE"
         self.set_env_variable(disable_tf, "1")
-        tf_outputs = self.__run_test(self.build_data_pipeline,
-                                     self.build_model1)
+        tf_outputs = self.__run_test(pipeline_builder,
+                                     model_builder, input_data)
 
         # Compare Values
         assert np.allclose(ng_outputs, tf_outputs)
@@ -114,3 +113,10 @@ class TestPrefetched(NgraphTest):
         self.unset_env_variable(prefetch_env)
         self.unset_env_variable(disable_tf)
         self.restore_env_variables(env_var_map)
+
+
+    def test_prefetch1(self):
+        self.helper(self.build_data_pipeline1, self.build_model1, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+    #def test_prefetch2(self):
+    #    self.helper(self.build_data_pipeline2, self.build_model2, [1, 2, 3, 4, 5, 6, 7, 8, 9])
