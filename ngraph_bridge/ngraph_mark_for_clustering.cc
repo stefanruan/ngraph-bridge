@@ -1151,16 +1151,20 @@ Status MarkForClustering(Graph* graph, const std::set<string> skip_these_nodes,
         break;
       }
 
-      // Check if op is supported by backend
-      bool is_supported = false;
-      TF_RETURN_IF_ERROR(IsSupportedByBackend(node, op_backend, TFtoNgraphOpMap,
-                                              is_supported));
+      // Skip the is_supported check if the backend is NNP-Transformer
+      // TODO: remove this when NNP-T has made the change
+      if (ng_backend_type != "NNP") {
+        // Check if op is supported by backend
+        bool is_supported = false;
+        TF_RETURN_IF_ERROR(IsSupportedByBackend(node, op_backend,
+                                                TFtoNgraphOpMap, is_supported));
 
-      if (!is_supported) {
-        NGRAPH_VLOG(5) << "TF Op " << node->name() << " of type "
-                       << node->type_string()
-                       << " is not supported by backend: " << ng_backend_type;
-        break;
+        if (!is_supported) {
+          NGRAPH_VLOG(5) << "TF Op " << node->name() << " of type "
+                         << node->type_string()
+                         << " is not supported by backend: " << ng_backend_type;
+          break;
+        }
       }
 
       // if all constraints are met, mark for clustering
